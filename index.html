@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAFL Pumping Lemma Visualizer</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --x-part: #e0f2fe; --x-stroke: #38bdf8;
+            --y-part: #dcfce7; --y-stroke: #4ade80;
+            --z-part: #fef2f2; --z-stroke: #f87171;
+            --text-main: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* SLOW, SMOOTH BACKGROUND ANIMATION */
+            background: linear-gradient(120deg, #f0f9ff, #e0e7ff, #faf5ff);
+            background-size: 200% 200%;
+            animation: slowGradient 15s ease infinite;
+            color: var(--text-main);
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        @keyframes slowGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 850px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        h1 { color: var(--primary); margin-top: 0; text-align: center; letter-spacing: -0.5px; }
+        
+        .math-box {
+            text-align: center;
+            background: rgba(241, 245, 249, 0.6);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 1.2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .setup-section {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 0.8rem; font-weight: bold; color: #64748b; text-transform: uppercase; }
+        
+        input {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+        .viz-stage { text-align: center; margin: 50px 0; }
+
+        .string-display {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 50px;
+            min-height: 100px;
+        }
+
+        /* VIDEO-LIKE SMOOTH TRANSITION FOR PILLS */
+        .pill {
+            padding: 18px 28px;
+            border-radius: 15px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 1.8rem;
+            font-weight: bold;
+            position: relative;
+            border: 2px solid;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            white-space: nowrap;
+        }
+
+        .label-float {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #94a3b8;
+            transition: all 0.4s ease;
+        }
+
+        .x { background: var(--x-part); border-color: var(--x-stroke); color: #0369a1; }
+        .y { background: var(--y-part); border-color: var(--y-stroke); color: #15803d; }
+        .z { background: var(--z-part); border-color: var(--z-stroke); color: #b91c1c; }
+
+        .pump-control {
+            background: white;
+            padding: 15px 35px;
+            border-radius: 100px;
+            display: inline-flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid #f1f5f9;
+        }
+
+        input[type="range"] {
+            width: 200px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .status {
+            margin-top: 40px;
+            padding: 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.4s ease;
+        }
+        .valid { background: #dcfce7; color: #166534; border: 1px solid #bdf4d4; }
+        .invalid { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        .rule-footer {
+            margin-top: 50px;
+            padding-top: 25px;
+            border-top: 2px solid #f8fafc;
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .rule-item { background: white; padding: 6px 14px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Pumping Lemma Visualizer</h1>
+    <div class="math-box">L = { a<sup>n</sup>b<sup>n</sup> | n ≥ 0 }</div>
+
+    <div class="setup-section">
+        <div class="input-group">
+            <label>Full String (s)</label>
+            <input type="text" id="strS" value="aaabbb" placeholder="Enter string...">
+        </div>
+        <div class="input-group">
+            <label>Split Widths (x, y)</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="number" id="lenX" value="1" min="0" style="width: 50%">
+                <input type="number" id="lenY" value="2" min="1" style="width: 50%">
+            </div>
+        </div>
+    </div>
+
+    <div class="viz-stage">
+        <div id="output" class="string-display"></div>
+
+        <div class="pump-control">
+            <label>Pumping Power (<i>i</i>):</label>
+            <input type="range" id="iRange" min="0" max="5" value="1">
+            <b id="iVal" style="color: var(--primary); font-size: 1.2rem;">1</b>
+        </div>
+
+        <div id="statusMsg" class="status"></div>
+    </div>
+
+    <div class="rule-footer">
+        <div class="rule-item">1. s = xyz</div>
+        <div class="rule-item">2. |xy| ≤ p</div>
+        <div class="rule-item">3. |y| ≥ 1</div>
+    </div>
+</div>
+
+<script>
+    const inputs = ['strS', 'lenX', 'lenY', 'iRange'];
+    
+    function render() {
+        const s = document.getElementById('strS').value;
+        const lx = parseInt(document.getElementById('lenX').value) || 0;
+        const ly = parseInt(document.getElementById('lenY').value) || 1;
+        const i = parseInt(document.getElementById('iRange').value);
+        
+        document.getElementById('iVal').innerText = i;
+
+        const xText = s.substring(0, lx);
+        const yText = s.substring(lx, lx + ly);
+        const zText = s.substring(lx + ly);
+        const pumpedY = yText.repeat(i);
+        const finalStr = xText + pumpedY + zText;
+
+        // Visual update with transition support
+        document.getElementById('output').innerHTML = `
+            <div class="pill x"><span class="label-float">x</span>${xText || 'ε'}</div>
+            <div class="pill y"><span class="label-float">y<sup>${i}</sup></span>${pumpedY || 'ε'}</div>
+            <div class="pill z"><span class="label-float">z</span>${zText || 'ε'}</div>
+        `;
+
+        const aCount = (finalStr.match(/a/g) || []).length;
+        const bCount = (finalStr.match(/b/g) || []).length;
+        // Logic for checking a^n b^n: must be all a's then all b's
+        const pattern = /^a*b*$/;
+        const isInL = pattern.test(finalStr) && aCount === bCount && finalStr.length > 0;
+
+        const msg = document.getElementById('statusMsg');
+        msg.className = 'status ' + (isInL ? 'valid' : 'invalid');
+        msg.innerHTML = isInL 
+            ? `Result: "${finalStr}" is in L (a:${aCount} = b:${bCount})` 
+            : `Result: "${finalStr}" is NOT in L (a:${aCount} ≠ b:${bCount})`;
+    }
+
+    inputs.forEach(id => document.getElementById(id).addEventListener('input', render));
+    
+    // Initial render
+    render();
+</script>
+
+</body>
+</html>
