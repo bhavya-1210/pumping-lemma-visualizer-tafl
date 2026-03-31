@@ -1,246 +1,1046 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TAFL Pumping Lemma Visualizer</title>
-    <style>
-        :root {
-            --primary: #6366f1;
-            --x-part: #e0f2fe; --x-stroke: #38bdf8;
-            --y-part: #dcfce7; --y-stroke: #4ade80;
-            --z-part: #fef2f2; --z-stroke: #f87171;
-            --text-main: #1e293b;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pumping Lemma Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0a0a12;--paper:#f5f3ee;
+  --accent:#ff4d00;
+  --blue:#0057a8;--blue-bg:#c8e8ff;
+  --green:#006b35;--green-bg:#c2f5d8;
+  --red:#a83200;--red-bg:#ffd9c8;
+  --card:rgba(255,255,255,0.85);
+  --border:rgba(10,10,18,0.09);
+}
+html,body{min-height:100vh;font-family:'Syne',sans-serif;background:var(--paper);color:var(--ink);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 70% 55% at 8% 12%,#dff0ff 0%,transparent 55%),
+    radial-gradient(ellipse 55% 50% at 92% 85%,#ffe0d4 0%,transparent 50%),
+    radial-gradient(ellipse 65% 55% at 52% 48%,#d4f5e3 0%,transparent 58%),var(--paper)}
+.grid-bg{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:linear-gradient(rgba(10,10,18,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(10,10,18,.03) 1px,transparent 1px);
+  background-size:52px 52px}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            /* SLOW, SMOOTH BACKGROUND ANIMATION */
-            background: linear-gradient(120deg, #f0f9ff, #e0e7ff, #faf5ff);
-            background-size: 200% 200%;
-            animation: slowGradient 15s ease infinite;
-            color: var(--text-main);
-            padding: 20px;
-            overflow-x: hidden;
-        }
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  padding:0 32px;height:84px;background:rgba(245,243,238,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);
+  display:flex;align-items:center;gap:10px}
+.eyebrow::before,.eyebrow::after{content:'';display:block;width:22px;height:1px;background:var(--accent);opacity:.5}
+h1{font-size:1.9rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;text-align:center}
+h1 span{color:var(--accent)}
+.subtitle{font-size:11.5px;color:rgba(10,10,18,.4);margin-top:2px;text-align:center}
 
-        @keyframes slowGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+/* MAIN */
+.main{position:relative;z-index:2;max-width:860px;margin:0 auto;padding:28px 20px 64px;display:flex;flex-direction:column;gap:12px}
 
-        .container {
-            max-width: 850px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(15px);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
+/* STEP CARD */
+.step-card{background:var(--card);border:1.5px solid rgba(255,255,255,.92);border-radius:20px;padding:24px 28px;
+  box-shadow:0 2px 0 rgba(255,255,255,.7) inset,0 4px 24px rgba(10,10,18,.07);
+  transition:opacity .3s,transform .3s,box-shadow .3s;position:relative;overflow:hidden}
+.step-card.locked{opacity:.35;pointer-events:none;transform:translateY(4px)}
+.step-card.done{opacity:.6}
+.step-card.done::after{content:'✓';position:absolute;top:14px;right:18px;font-size:18px;color:#5dcaa5;font-weight:800}
+.step-card.active{box-shadow:0 2px 0 rgba(255,255,255,.8) inset,0 8px 32px rgba(10,10,18,.1),0 0 0 2px rgba(255,77,0,.13)}
+.step-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.step-num{width:30px;height:30px;border-radius:9px;background:rgba(10,10,18,.1);
+  font-family:'DM Mono',monospace;font-size:13px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,color .2s}
+.step-card.active .step-num{background:var(--accent);color:#fff}
+.step-card.done .step-num{background:#5dcaa5;color:#fff}
+.step-title{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 
-        h1 { color: var(--primary); margin-top: 0; text-align: center; letter-spacing: -0.5px; }
-        
-        .math-box {
-            text-align: center;
-            background: rgba(241, 245, 249, 0.6);
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 1.2rem;
-            border: 1px solid #e2e8f0;
-        }
+/* FIELDS */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(10,10,18,.38)}
+input[type=text],input[type=number],select{
+  width:100%;padding:10px 13px;background:rgba(255,255,255,.9);border:1.5px solid rgba(10,10,18,.11);
+  border-radius:10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--ink);
+  transition:border-color .18s,box-shadow .18s;outline:none;appearance:none}
+input:focus,select:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(255,77,0,.09)}
+input.err-field{border-color:#f0997b!important;box-shadow:0 0 0 3px rgba(240,153,123,.15)!important}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ff4d00' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center;padding-right:32px;cursor:pointer}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 
-        .setup-section {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 25px;
-            margin-bottom: 40px;
-        }
+/* BUTTON */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:var(--ink);color:#fff;border:none;border-radius:10px;
+  font-family:'Syne',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.02em;
+  cursor:pointer;transition:transform .15s,box-shadow .15s,background .2s;margin-top:4px}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.15)}
+.btn-accent{background:var(--accent)}
+.btn-accent:hover{background:#e03e00;box-shadow:0 5px 16px rgba(255,77,0,.25)}
+.btn-ghost{background:rgba(10,10,18,.07);color:rgba(10,10,18,.55);border:1.5px solid rgba(10,10,18,.1)}
+.btn-ghost:hover{background:rgba(10,10,18,.13);color:var(--ink)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
 
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        label { font-size: 0.8rem; font-weight: bold; color: #64748b; text-transform: uppercase; }
-        
-        input {
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+/* INFO / ERROR NOTES */
+.note{font-family:'DM Mono',monospace;font-size:10px;color:rgba(10,10,18,.36);line-height:1.65;margin-top:4px}
+.err{font-family:'DM Mono',monospace;font-size:10px;color:#a83200;margin-top:5px;line-height:1.5;display:none}
+code{background:rgba(10,10,18,.07);padding:1px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10.5px}
 
-        .viz-stage { text-align: center; margin: 50px 0; }
+/* LANGUAGE PREVIEW BOX */
+.lang-preview{background:rgba(255,77,0,.04);border:1.5px solid rgba(255,77,0,.15);border-radius:14px;
+  padding:16px 20px;margin:14px 0 6px;text-align:center}
+.lang-formula{font-family:'DM Mono',monospace;font-size:1.05rem;font-weight:500;color:var(--ink);line-height:1.8;word-break:break-word}
+.lang-formula .sym-a{color:var(--blue);font-weight:700}
+.lang-formula .sym-b{color:var(--green);font-weight:700}
+.lang-formula .sym-c{color:var(--red);font-weight:700}
+.lang-formula .sym-d{color:#7a009a;font-weight:700}
+.lang-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(10,10,18,.38);margin-top:6px}
 
-        .string-display {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 12px;
-            margin-bottom: 50px;
-            min-height: 100px;
-        }
+/* SYMBOL BUILDER */
+.sym-builder{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+.sym-row{display:grid;grid-template-columns:80px 80px 1fr;gap:10px;align-items:end;
+  background:rgba(255,255,255,.6);border:1.5px solid rgba(10,10,18,.07);border-radius:12px;padding:10px 14px}
+.sym-row-head{display:grid;grid-template-columns:80px 80px 1fr;gap:10px;
+  font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(10,10,18,.3);padding:0 14px;margin-bottom:2px}
+.add-sym-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+  background:rgba(10,10,18,.06);border:1.5px dashed rgba(10,10,18,.15);border-radius:8px;
+  font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;color:rgba(10,10,18,.45);
+  transition:all .15s;margin-top:4px;width:fit-content}
+.add-sym-btn:hover{background:rgba(255,77,0,.06);border-color:var(--accent);color:var(--accent)}
+.remove-sym{width:24px;height:24px;border-radius:6px;background:rgba(168,50,0,.08);border:none;
+  color:#a83200;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;flex-shrink:0;margin-top:auto}
+.remove-sym:hover{background:rgba(168,50,0,.18)}
 
-        /* VIDEO-LIKE SMOOTH TRANSITION FOR PILLS */
-        .pill {
-            padding: 18px 28px;
-            border-radius: 15px;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            font-size: 1.8rem;
-            font-weight: bold;
-            position: relative;
-            border: 2px solid;
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            white-space: nowrap;
-        }
+/* CONSTRAINT BUILDER */
+.constraint-builder{margin-top:4px}
+.con-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;
+  background:rgba(255,255,255,.6);border:1.5px solid rgba(10,10,18,.07);border-radius:10px;padding:8px 12px}
+.con-select{width:auto;flex-shrink:0;min-width:70px;padding:6px 28px 6px 10px;font-size:12px}
+.con-op{font-family:'DM Mono',monospace;font-size:13px;color:rgba(10,10,18,.4);flex-shrink:0}
+.con-num{width:64px;padding:6px 10px;font-size:12px}
+.add-con-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+  background:rgba(10,10,18,.05);border:1.5px dashed rgba(10,10,18,.12);border-radius:8px;
+  font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;color:rgba(10,10,18,.4);transition:all .15s}
+.add-con-btn:hover{background:rgba(255,77,0,.05);border-color:var(--accent);color:var(--accent)}
+.remove-con{background:none;border:none;color:rgba(10,10,18,.25);cursor:pointer;font-size:16px;padding:0 2px;transition:color .15s}
+.remove-con:hover{color:#a83200}
 
-        .label-float {
-            position: absolute;
-            top: -35px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: #94a3b8;
-            transition: all 0.4s ease;
-        }
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:10px;padding:0 6px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(10,10,18,.08),transparent)}
+.divider-dot{width:5px;height:5px;border-radius:50%;background:rgba(10,10,18,.12)}
 
-        .x { background: var(--x-part); border-color: var(--x-stroke); color: #0369a1; }
-        .y { background: var(--y-part); border-color: var(--y-stroke); color: #15803d; }
-        .z { background: var(--z-part); border-color: var(--z-stroke); color: #b91c1c; }
+/* DECOMP XY INPUT */
+.xy-input-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0}
+.xy-result{border-radius:12px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:12.5px;
+  border:2px solid;margin-top:10px;line-height:1.7;font-weight:500}
+.xy-ok{background:rgba(194,245,216,.4);border-color:#5dcaa5;color:var(--green)}
+.xy-bad{background:rgba(255,217,200,.4);border-color:#f0997b;color:var(--red)}
+.xy-neu{background:rgba(200,232,255,.35);border-color:#6bb8f0;color:var(--blue)}
 
-        .pump-control {
-            background: white;
-            padding: 15px 35px;
-            border-radius: 100px;
-            display: inline-flex;
-            align-items: center;
-            gap: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            border: 1px solid #f1f5f9;
-        }
+/* CHAR RULER */
+.ruler-wrap{margin:12px 0 6px}
+.ruler-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(10,10,18,.3);margin-bottom:6px}
+.char-ruler{display:flex;gap:3px;flex-wrap:wrap}
+.char-cell{font-family:'DM Mono',monospace;width:34px;height:42px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;border-radius:8px;border:2px solid transparent;flex-shrink:0;gap:2px;transition:all .2s}
+.char-cell .ch{font-size:.88rem;font-weight:700}
+.char-cell .ci{font-size:7px;opacity:.35}
+.char-cell.zone-x{border-color:#6bb8f0;background:rgba(200,232,255,.55);color:var(--blue)}
+.char-cell.zone-y{border-color:#5dcaa5;background:rgba(194,245,216,.65);color:var(--green);font-weight:900;transform:translateY(-2px)}
+.char-cell.zone-z{border-color:#f0997b;background:rgba(255,217,200,.55);color:var(--red)}
+.zone-legend{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.zone-leg-item{font-family:'DM Mono',monospace;font-size:9.5px;display:flex;align-items:center;gap:5px}
+.zone-swatch{width:12px;height:12px;border-radius:3px;border:2px solid}
 
-        input[type="range"] {
-            width: 200px;
-            accent-color: var(--primary);
-            cursor: pointer;
-        }
+/* PUMP SECTION */
+.pump-row{display:flex;align-items:center;gap:18px;justify-content:center;margin:16px 0 8px}
+input[type=range]{-webkit-appearance:none;width:280px;height:6px;background:rgba(10,10,18,.1);border-radius:99px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  background:var(--ink);border:3px solid var(--paper);box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:grab;transition:transform .15s}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grabbing}
+.i-badge{width:48px;height:48px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#ff6b2a 0%,#ff4d00 100%);color:#fff;border-radius:12px;font-size:20px;font-weight:600;flex-shrink:0;
+  box-shadow:0 4px 14px rgba(255,77,0,.3);font-family:"DM Mono",monospace;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;line-height:1}
 
-        .status {
-            margin-top: 40px;
-            padding: 20px;
-            border-radius: 15px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            transition: all 0.4s ease;
-        }
-        .valid { background: #dcfce7; color: #166534; border: 1px solid #bdf4d4; }
-        .invalid { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+/* PUMPED STRING DISPLAY */
+.pumped-display{background:rgba(10,10,18,.04);border:1.5px solid rgba(10,10,18,.08);border-radius:12px;padding:12px 18px;margin:8px 0;display:none}
+.pumped-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(10,10,18,.3);margin-bottom:4px}
+.pumped-val{font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:600;word-break:break-all;color:var(--ink)}
 
-        .rule-footer {
-            margin-top: 50px;
-            padding-top: 25px;
-            border-top: 2px solid #f8fafc;
-            display: flex;
-            justify-content: space-around;
-            font-size: 0.9rem;
-            color: #94a3b8;
-            font-weight: 600;
-        }
-        .rule-item { background: white; padding: 6px 14px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-    </style>
+/* PARTS STAGE */
+.stage{display:flex;justify-content:center;align-items:flex-end;gap:12px;padding:14px 0 6px;flex-wrap:wrap}
+.pill-wrap{display:flex;flex-direction:column;align-items:center;gap:7px}
+.pill-tag{font-family:'DM Mono',monospace;font-size:11px;font-style:italic;color:rgba(10,10,18,.35)}
+.pill{padding:12px 22px;border-radius:12px;font-family:'DM Mono',monospace;font-size:1.35rem;font-weight:600;
+  border:2px solid;min-width:50px;text-align:center;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.pill:hover{transform:translateY(-4px)}
+.pill-x{background:var(--blue-bg);border-color:#6bb8f0;color:var(--blue)}
+.pill-y{background:var(--green-bg);border-color:#5dcaa5;color:var(--green)}
+.pill-z{background:var(--red-bg);border-color:#f0997b;color:var(--red)}
+
+/* RESULT BANNER */
+/* VERDICT CARD */
+.verdict-card{border-radius:18px;overflow:hidden;margin-top:14px;border:2px solid}
+.verdict-header{display:flex;align-items:center;gap:14px;padding:18px 22px 18px 18px}
+.verdict-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.verdict-title{font-size:15px;font-weight:800;letter-spacing:-.01em;line-height:1.4;overflow:visible}
+.verdict-subtitle{font-size:11px;opacity:.7;margin-top:2px;font-weight:400}
+.verdict-body{padding:16px 22px 20px;font-family:'DM Mono',monospace;font-size:12.5px;line-height:1.85;border-top:1px solid rgba(10,10,18,.06)}
+.verdict-body strong{font-weight:700}
+.vc-not-regular .verdict-header{background:rgba(255,217,200,.5);border-color:#f0997b;color:#7a2500}
+.vc-not-regular .verdict-icon{background:#f0997b;color:#fff}
+.vc-not-regular .verdict-body{background:rgba(255,235,225,.35);color:#7a2500}
+.vc-not-regular{border-color:#f0997b}
+.vc-ok .verdict-header{background:rgba(194,245,216,.5);color:#004d27}
+.vc-ok .verdict-icon{background:#5dcaa5;color:#fff}
+.vc-ok .verdict-body{background:rgba(220,250,235,.3);color:#004d27}
+.vc-ok{border-color:#5dcaa5}
+.vc-info .verdict-header{background:rgba(200,232,255,.5);color:#003d7a}
+.vc-info .verdict-icon{background:#6bb8f0;color:#fff}
+.vc-info .verdict-body{background:rgba(220,240,255,.3);color:#003d7a}
+.vc-info{border-color:#6bb8f0}
+.proof-steps{margin-top:10px;padding:10px 14px;background:rgba(10,10,18,.04);border-radius:10px;border:1px solid rgba(10,10,18,.07)}
+.proof-step{display:flex;gap:10px;margin-bottom:8px;font-size:12.5px;line-height:1.6}
+.proof-step:last-child{margin-bottom:0}
+.ps-num{width:22px;height:22px;border-radius:6px;background:rgba(10,10,18,.12);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* CHIPS */
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-family:'DM Mono',monospace;font-size:10px;padding:4px 12px;border-radius:99px;border:1.5px solid}
+.chip-ok{background:rgba(194,245,216,.4);border-color:#5dcaa5;color:var(--green)}
+.chip-bad{background:rgba(255,217,200,.4);border-color:#f0997b;color:var(--red)}
+.chip-neu{background:rgba(255,255,255,.7);border-color:rgba(10,10,18,.12);color:rgba(10,10,18,.45)}
+
+/* RULES FOOTER */
+.rules-banner{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;
+  background:rgba(255,255,255,.5);border:1.5px solid rgba(10,10,18,.07);border-radius:14px;padding:12px 16px}
+.rule-chip{font-family:'DM Mono',monospace;font-size:10px;padding:5px 13px;border:1.5px solid rgba(10,10,18,.1);border-radius:99px;color:rgba(10,10,18,.45);background:rgba(255,255,255,.7)}
+
+/* RESTART */
+.restart-footer{display:flex;justify-content:center;padding-top:4px}
+.restart-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;
+  background:rgba(10,10,18,.06);border:1.5px solid rgba(10,10,18,.1);border-radius:10px;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:rgba(10,10,18,.45);
+  transition:all .15s}
+.restart-btn:hover{background:rgba(10,10,18,.12);color:var(--ink);transform:translateY(-1px)}
+</style>
 </head>
 <body>
+<div class="grid-bg"></div>
 
-<div class="container">
-    <h1>Pumping Lemma Visualizer</h1>
-    <div class="math-box">L = { a<sup>n</sup>b<sup>n</sup> | n ≥ 0 }</div>
-
-    <div class="setup-section">
-        <div class="input-group">
-            <label>Full String (s)</label>
-            <input type="text" id="strS" value="aaabbb" placeholder="Enter string...">
-        </div>
-        <div class="input-group">
-            <label>Split Widths (x, y)</label>
-            <div style="display: flex; gap: 8px;">
-                <input type="number" id="lenX" value="1" min="0" style="width: 50%">
-                <input type="number" id="lenY" value="2" min="1" style="width: 50%">
-            </div>
-        </div>
-    </div>
-
-    <div class="viz-stage">
-        <div id="output" class="string-display"></div>
-
-        <div class="pump-control">
-            <label style="text-transform: none;">Pumping Power (<span style="font-style: italic; font-family: serif; text-transform: none;">  i  </span>) :</label>
-            <input type="range" id="iRange" min="0" max="5" value="1">
-            <b id="iVal" style="color: var(--primary); font-size: 1.2rem;">1</b>
-        </div>
-
-        <div id="statusMsg" class="status"></div>
-    </div>
-
-    <div class="rule-footer">
-        <div class="rule-item">1. s = xyz</div>
-        <div class="rule-item">2. |xy| ≤ p</div>
-        <div class="rule-item">3. |y| ≥ 1</div>
-    </div>
+<div class="topbar">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+    <div class="eyebrow">Theory of Automata</div>
+    <h1>Pumping <span>Lemma</span> Visualizer</h1>
+    <p class="subtitle">Build your language, choose a string, decompose and pump</p>
+  </div>
 </div>
 
+<div class="main">
+
+<!-- ═══════════════════════════════════════
+     STEP 1 — DEFINE LANGUAGE
+═══════════════════════════════════════ -->
+<div class="step-card active" id="step1">
+  <div class="step-head">
+    <div class="step-num">1</div>
+    <span class="step-title">Define Your Language</span>
+  </div>
+
+  <!-- Number of symbols -->
+  <div style="max-width:120px">
+    <div class="field">
+      <span class="field-label">How many distinct symbols?</span>
+      <input type="number" id="symCountInput" value="1" min="1" max="5" onchange="setSymCount(this.value)" oninput="validateSymCount(this.value)">
+    </div>
+    <div class="err" id="symCountErr" style="display:none;margin-top:6px"></div>
+  </div>
+
+  <!-- Symbol builder (shown after count picked) -->
+  <div id="symBuilderWrap" style="display:none">
+    <div class="sym-row-head"><span>Symbol</span><span>Power var</span><span>Min value (≥ ?)</span></div>
+    <div class="sym-builder" id="symBuilder"></div>
+
+    <!-- Constraints -->
+    <div style="margin-top:14px">
+      <div class="field-label" style="margin-bottom:8px">Constraints between powers &nbsp;<span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+      <div class="constraint-builder" id="conBuilder"></div>
+      <button class="add-con-btn" onclick="addConstraint()">+ Add constraint</button>
+    </div>
+
+    <!-- Live preview -->
+    <div class="lang-preview" id="langPreview">
+      <div class="lang-formula" id="langFormula">—</div>
+      <div class="lang-meta" id="langMeta"></div>
+    </div>
+
+    <div class="err" id="langErr"></div>
+    <button class="btn btn-accent" onclick="goStep2()" style="margin-top:14px">Next: Set Pumping Length →</button>
+  </div>
+</div>
+
+<div class="divider"><div class="divider-dot"></div></div>
+
+<!-- ═══════════════════════════════════════
+     STEP 2 — PUMPING LENGTH
+═══════════════════════════════════════ -->
+<div class="step-card locked" id="step2">
+  <div class="step-head">
+    <div class="step-num">2</div>
+    <span class="step-title">Pumping Length  p</span>
+  </div>
+  <div style="max-width:220px">
+    <div class="field">
+      <span class="field-label">Value of p  (integer ≥ 1)</span>
+      <input type="number" id="pumpLen" value="4" min="1" max="30">
+    </div>
+  </div>
+  <p class="note">The pumping lemma states: if L is regular, ∃ p such that every s ∈ L with |s| ≥ p can be decomposed as xyz satisfying the three conditions.</p>
+  <button class="btn btn-accent" onclick="goStep3()">Next: Choose String →</button>
+</div>
+
+<div class="divider"><div class="divider-dot"></div></div>
+
+<!-- ═══════════════════════════════════════
+     STEP 3 — CHOOSE STRING
+═══════════════════════════════════════ -->
+<div class="step-card locked" id="step3">
+  <div class="step-head">
+    <div class="step-num">3</div>
+    <span class="step-title">Choose String  s ∈ L</span>
+    <span id="s3constraint" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(10,10,18,.35);margin-left:auto">|s| ≥ p</span>
+  </div>
+
+  <div style="display:flex;gap:6px;margin-bottom:14px">
+    <button class="btn btn-accent" style="margin-top:0;font-size:11px;padding:7px 14px" onclick="autoGenString()">⚡ Auto-generate</button>
+    <button class="btn btn-ghost" style="margin-top:0;font-size:11px;padding:7px 14px" onclick="toggleManual()">✎ Enter manually</button>
+  </div>
+
+  <div id="manualStrWrap" style="display:none">
+    <div class="field">
+      <span class="field-label">String s — must be in L and |s| ≥ p</span>
+      <input type="text" id="manualStr" placeholder="e.g. aaabbb" oninput="validateManualStr()">
+    </div>
+    <div class="err" id="manualErr"></div>
+  </div>
+
+  <div id="strChosen" style="display:none">
+    <div style="background:rgba(10,10,18,.04);border:1.5px solid rgba(10,10,18,.08);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(10,10,18,.32)">s =</span>
+      <span style="font-family:'DM Mono',monospace;font-size:1.15rem;font-weight:600" id="strDisplay">—</span>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(10,10,18,.32);margin-left:auto" id="strLen"></span>
+    </div>
+  </div>
+
+  <button class="btn btn-accent" onclick="goStep4()" id="step3Btn" style="display:none">Next: Decompose s →</button>
+</div>
+
+<div class="divider"><div class="divider-dot"></div></div>
+
+<!-- ═══════════════════════════════════════
+     STEP 4 — DECOMPOSE s = xyz
+═══════════════════════════════════════ -->
+<div class="step-card locked" id="step4">
+  <div class="step-head">
+    <div class="step-num">4</div>
+    <span class="step-title">Decompose  s = x · y · z</span>
+  </div>
+
+  <p class="note" style="margin-bottom:14px">Enter the lengths of x and y. The tool will check if the decomposition satisfies the pumping lemma constraints.</p>
+
+  <!-- ruler -->
+  <div class="ruler-wrap" id="rulerWrap" style="display:none">
+    <div class="ruler-label">String character map</div>
+    <div class="char-ruler" id="charRuler"></div>
+    <div class="zone-legend" id="zoneLegend"></div>
+  </div>
+
+  <!-- XY length inputs -->
+  <div class="xy-input-row">
+    <div class="field" style="margin-bottom:0">
+      <span class="field-label">Length of  x  &nbsp;( |x| )</span>
+      <input type="number" id="lxInput" min="0" placeholder="0" oninput="checkDecomp()">
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <span class="field-label">Length of  y  &nbsp;( |y| ≥ 1 )</span>
+      <input type="number" id="lyInput" min="1" placeholder="1" oninput="checkDecomp()">
+    </div>
+  </div>
+
+  <!-- decomp result -->
+  <div class="xy-result xy-neu" id="decompResult" style="display:none"></div>
+
+  <!-- chip summary -->
+  <div class="chip-row" id="decompChips" style="display:none"></div>
+
+  <!-- parts preview -->
+  <div class="stage" id="stage4"></div>
+
+  <button class="btn btn-accent" onclick="goStep5()" id="step4Btn" style="display:none;margin-top:10px">Next: Pump →</button>
+</div>
+
+<div class="divider"><div class="divider-dot"></div></div>
+
+<!-- ═══════════════════════════════════════
+     STEP 5 — PUMP & VERIFY
+═══════════════════════════════════════ -->
+<div class="step-card locked" id="step5">
+  <div class="step-head">
+    <div class="step-num">5</div>
+    <span class="step-title">Pump  xy<sup id="iHead">i</sup>z  and Verify</span>
+  </div>
+
+  <div class="pump-row">
+    <input type="range" id="iRange" min="0" max="7" value="1" oninput="updatePump()">
+    <div class="i-badge" id="iBadge">1</div>
+  </div>
+
+  <div class="pumped-display" id="pumpedDisplay">
+    <div class="pumped-lbl" id="pumpedLbl">xy¹z =</div>
+    <div class="pumped-val" id="pumpedVal">—</div>
+  </div>
+
+  <div class="stage" id="stage5"></div>
+
+  <!-- VERDICT CARD -->
+  <div class="verdict-card" id="verdictCard" style="display:none"></div>
+
+  <!-- DEFAULT INFO STATE -->
+  <div class="verdict-card vc-info" id="defaultInfo" style="display:block">
+    <div class="verdict-header">
+      <div class="verdict-icon">◎</div>
+      <div><div class="verdict-title">Adjust the slider</div>
+      <div class="verdict-subtitle">Move i to pump the string and check membership in L</div></div>
+    </div>
+    <div class="verdict-body">
+      Set i = 0, 2, 3… and observe whether xy<sup>i</sup>z stays in L.<br>
+      If <strong>any</strong> i causes xy<sup>i</sup>z ∉ L, the Pumping Lemma is <strong>violated</strong>.
+    </div>
+  </div>
+</div>
+
+<!-- RULES -->
+<div class="rules-banner">
+  <span class="rule-chip">① s = xyz</span>
+  <span class="rule-chip">② |xy| ≤ p</span>
+  <span class="rule-chip">③ |y| ≥ 1</span>
+  <span class="rule-chip">④ xyⁱz ∈ L  ∀i ≥ 0</span>
+</div>
+
+<div class="restart-footer">
+  <button class="restart-btn" onclick="restart()">↺ Start Over</button>
+</div>
+
+</div><!-- /main -->
+
 <script>
-    const inputs = ['strS', 'lenX', 'lenY', 'iRange'];
-    
-    function render() {
-        const s = document.getElementById('strS').value;
-        const lx = parseInt(document.getElementById('lenX').value) || 0;
-        const ly = parseInt(document.getElementById('lenY').value) || 1;
-        const i = parseInt(document.getElementById('iRange').value);
-        
-        document.getElementById('iVal').innerText = i;
+/* ═══════════════════════════════════
+   STATE
+═══════════════════════════════════ */
+let ST = {
+  symCount: 0,
+  syms: [],        // [{char, powerVar, min}]
+  constraints: [], // [{lhs, op, rhs, rhsVar}]  e.g. n0 = n1 + n2
+  p: 4,
+  s: '',
+  lx: 0, ly: 0,
+  memberFn: null
+};
 
-        const xText = s.substring(0, lx);
-        const yText = s.substring(lx, lx + ly);
-        const zText = s.substring(lx + ly);
-        const pumpedY = yText.repeat(i);
-        const finalStr = xText + pumpedY + zText;
+const SYM_COLORS = ['sym-a','sym-b','sym-c','sym-d'];
+const CELL_PALETTES = [
+  ['rgba(200,232,255,.55)','#6bb8f0','#0057a8'],
+  ['rgba(194,245,216,.55)','#5dcaa5','#006b35'],
+  ['rgba(255,217,200,.55)','#f0997b','#a83200'],
+  ['rgba(230,210,255,.55)','#b07ad4','#4a0080'],
+];
 
-        // Visual update with transition support
-        document.getElementById('output').innerHTML = `
-            <div class="pill x"><span class="label-float">x</span>${xText || 'ε'}</div>
-            <div class="pill y"><span class="label-float">y<sup>${i}</sup></span>${pumpedY || 'ε'}</div>
-            <div class="pill z"><span class="label-float">z</span>${zText || 'ε'}</div>
-        `;
+/* ═══════════════════════════════════
+   STEP 1 — SYMBOL COUNT
+═══════════════════════════════════ */
+function validateSymCount(n) {
+  const parsed = parseInt(n);
+  const errEl = document.getElementById('symCountErr');
+  
+  if (isNaN(parsed) || parsed === '') {
+    errEl.style.display = 'none';
+    return;
+  }
+  
+  if (parsed > 5) {
+    errEl.textContent = 'Must be ≤ 5';
+    errEl.style.display = '';
+  } else if (parsed < 1) {
+    errEl.textContent = 'Must be ≥ 1';
+    errEl.style.display = '';
+  } else {
+    errEl.style.display = 'none';
+  }
+}
 
-        const aCount = (finalStr.match(/a/g) || []).length;
-        const bCount = (finalStr.match(/b/g) || []).length;
-        // Logic for checking a^n b^n: must be all a's then all b's
-        const pattern = /^a*b*$/;
-        const isInL = pattern.test(finalStr) && aCount === bCount && finalStr.length > 0;
+function setSymCount(n) {
+  // Validate input - ensure it's a valid number between 1-5
+  const parsed = parseInt(n);
+  if (isNaN(parsed) || parsed < 1 || parsed > 5) {
+    return; // Ignore invalid input
+  }
+  
+  ST.symCount = parsed;
+  document.getElementById('symCountInput').value = parsed;
+  document.getElementById('symCountErr').style.display = 'none';
 
-        const msg = document.getElementById('statusMsg');
-        msg.className = 'status ' + (isInL ? 'valid' : 'invalid');
-        msg.innerHTML = isInL 
-            ? `Result: "${finalStr}" is in L (a:${aCount} = b:${bCount})` 
-            : `Result: "${finalStr}" is NOT in L (a:${aCount} ≠ b:${bCount})`;
+  // build sym rows
+  const builder = document.getElementById('symBuilder');
+  builder.innerHTML = '';
+  ST.syms = [];
+  for (let i = 0; i < parsed; i++) {
+    ST.syms.push({ char: String.fromCharCode(97+i), powerVar: 'n'+i, min: 1 });
+    const row = document.createElement('div');
+    row.className = 'sym-row';
+    row.id = 'symrow'+i;
+    row.innerHTML = `
+      <div class="field" style="margin-bottom:0">
+        <input type="text" maxlength="1" value="${String.fromCharCode(97+i)}"
+          style="text-align:center;font-size:1.1rem;font-weight:700"
+          oninput="updateSym(${i},'char',this.value)" placeholder="a">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <input type="text" maxlength="4" value="n${i}"
+          style="text-align:center"
+          oninput="updateSym(${i},'powerVar',this.value)" placeholder="n${i}">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <select oninput="updateSym(${i},'min',parseInt(this.value))">
+          <option value="0">≥ 0</option>
+          <option value="1" selected>≥ 1</option>
+        </select>
+      </div>`;
+    builder.appendChild(row);
+  }
+
+  // reset constraints
+  ST.constraints = [];
+  document.getElementById('conBuilder').innerHTML = '';
+
+  document.getElementById('symBuilderWrap').style.display = '';
+  updateLangPreview();
+}
+
+function updateSym(i, key, val) {
+  if (!ST.syms[i]) return;
+  ST.syms[i][key] = val;
+  updateLangPreview();
+}
+
+/* ═══════════════════════════════════
+   CONSTRAINTS
+═══════════════════════════════════ */
+function addConstraint() {
+  const idx = ST.constraints.length;
+  ST.constraints.push({ lhsVar: 'n0', op: '=', rhsVal: '' });
+
+  const row = document.createElement('div');
+  row.className = 'con-row';
+  row.id = 'conrow'+idx;
+
+  const varOpts = ST.syms.map((s,i) => `<option value="${s.powerVar}">${s.powerVar}</option>`).join('');
+  row.innerHTML = `
+    <select class="con-select" onchange="updateCon(${idx},'lhsVar',this.value)">${varOpts}</select>
+    <select class="con-select" onchange="updateCon(${idx},'op',this.value)">
+      <option value="=">=</option>
+      <option value="≤">≤</option>
+      <option value="≥">≥</option>
+      <option value="<">&lt;</option>
+      <option value=">">&gt;</option>
+    </select>
+    <input class="con-num" type="text" placeholder="n1 or 2n0+1" value=""
+      oninput="updateCon(${idx},'rhsExpr',this.value)">
+    <button class="remove-con" onclick="removeCon(${idx})">×</button>`;
+  document.getElementById('conBuilder').appendChild(row);
+  updateLangPreview();
+}
+
+function updateCon(i, key, val) {
+  if (!ST.constraints[i]) return;
+  ST.constraints[i][key] = val;
+  updateLangPreview();
+}
+
+function removeCon(i) {
+  ST.constraints[i] = null;
+  const el = document.getElementById('conrow'+i);
+  if (el) el.remove();
+  updateLangPreview();
+}
+
+/* ═══════════════════════════════════
+   LANG PREVIEW + MEMBER FUNCTION
+═══════════════════════════════════ */
+function updateLangPreview() {
+  const syms = ST.syms;
+  if (!syms.length) return;
+
+  // formula string
+  const parts = syms.map((s,i) => {
+    const cls = SYM_COLORS[i % SYM_COLORS.length];
+    const v = s.powerVar || ('n'+i);
+    const ch = s.char || String.fromCharCode(97+i);
+    return `<span class="${cls}">${ch}<sup>${v}</sup></span>`;
+  }).join('');
+
+  const cons = ST.constraints.filter(Boolean);
+  const condParts = syms.map((s,i) => {
+    const v = s.powerVar || ('n'+i);
+    return `${v} ≥ ${s.min ?? 1}`;
+  });
+  cons.forEach(c => {
+    if (c.rhsExpr) condParts.push(`${c.lhsVar} ${c.op} ${c.rhsExpr}`);
+  });
+
+  document.getElementById('langFormula').innerHTML =
+    `L = { ${parts} &nbsp;|&nbsp; ${condParts.join(' , ')} }`;
+  document.getElementById('langMeta').textContent =
+    `Alphabet: { ${syms.map(s=>s.char).join(', ')} }`;
+
+  // build member function
+  buildMemberFn();
+}
+
+function buildMemberFn() {
+  const syms = ST.syms;
+  if (!syms.length) { ST.memberFn = null; return; }
+
+  // regex: each sym repeated its var times
+  // We can't check arbitrary regex at build time, so we build a JS function
+  let code = `
+    const w = _w;
+    // match structure
+    const pat = /^${syms.map(s => `(${escRe(s.char)}*)`).join('')}$/;
+    const m = w.match(pat);
+    if (!m) return false;
+  `;
+
+  syms.forEach((s, i) => {
+    const v = s.powerVar || ('n'+i);
+    code += `const ${v} = m[${i+1}].length;\n`;
+  });
+
+  // min constraints
+  syms.forEach((s, i) => {
+    const v = s.powerVar || ('n'+i);
+    const mn = s.min ?? 1;
+    if (mn > 0) code += `if (${v} < ${mn}) return false;\n`;
+  });
+
+  // user constraints
+  ST.constraints.filter(Boolean).forEach(c => {
+    if (!c.rhsExpr || !c.lhsVar || !c.op) return;
+    const op = c.op === '=' ? '===' : c.op;
+    // replace power var names in rhsExpr with their values
+    code += `if (!(${c.lhsVar} ${op} (${c.rhsExpr}))) return false;\n`;
+  });
+
+  code += 'return true;';
+
+  try {
+    ST.memberFn = new Function('_w', code);
+    document.getElementById('langErr').style.display = 'none';
+  } catch(e) {
+    ST.memberFn = null;
+  }
+}
+
+function escRe(ch) {
+  return ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function inLang(w) {
+  if (!ST.memberFn) return false;
+  try { return ST.memberFn(w); } catch { return false; }
+}
+
+/* ═══════════════════════════════════
+   AUTO-GENERATE STRING
+═══════════════════════════════════ */
+function autoGenString() {
+  if (!ST.memberFn) { alert('Please finish defining your language first.'); return; }
+  const p = ST.p;
+  // try increasing values of n until we find one satisfying constraints and |s|>p
+  for (let total = p + 1; total <= p * 6 + 10; total++) {
+    const s = tryGenerate(total);
+    if (s && inLang(s) && s.length > p) {
+      setChosenString(s);
+      return;
     }
+  }
+  alert('Could not auto-generate a valid string. Try entering one manually.');
+}
 
-    inputs.forEach(id => document.getElementById(id).addEventListener('input', render));
-    
-    // Initial render
-    render();
+function tryGenerate(targetLen) {
+  const syms = ST.syms;
+  if (!syms.length) return null;
+  const n = syms.length;
+  const mins = syms.map(s => s.min ?? 1);
+  const minTotal = mins.reduce((a,b)=>a+b, 0);
+  if (targetLen < minTotal) return null;
+
+  const cons = ST.constraints.filter(Boolean).filter(c => c.rhsExpr && c.lhsVar && c.op);
+
+  // simple approach: distribute evenly, then apply constraints
+  const base = Math.max(1, Math.floor(targetLen / n));
+  const vals = syms.map((s,i) => Math.max(mins[i], base));
+
+  // try to satisfy equality constraints by solving for one variable
+  for (const c of cons) {
+    if (c.op === '=') {
+      const lhsIdx = syms.findIndex(s => s.powerVar === c.lhsVar);
+      if (lhsIdx < 0) continue;
+      try {
+        // evaluate rhs with current vals
+        const tmpFn = buildEvalFn(c.rhsExpr, syms, vals);
+        vals[lhsIdx] = Math.max(mins[lhsIdx], tmpFn);
+      } catch {}
+    }
+  }
+
+  return syms.map((s,i) => (s.char || String.fromCharCode(97+i)).repeat(vals[i])).join('');
+}
+
+function buildEvalFn(expr, syms, vals) {
+  let code = '';
+  syms.forEach((s,i) => { code += `const ${s.powerVar} = ${vals[i]};\n`; });
+  code += `return (${expr});`;
+  return new Function(code)();
+}
+
+/* ═══════════════════════════════════
+   STEP NAVIGATION
+═══════════════════════════════════ */
+function goStep2() {
+  if (!ST.syms.length) { alert('Please select the number of symbols first.'); return; }
+  if (!ST.memberFn) {
+    document.getElementById('langErr').textContent = 'Language definition is invalid. Check symbol characters.';
+    document.getElementById('langErr').style.display = 'block';
+    return;
+  }
+  setCards(2); scrollToCard('step2');
+}
+
+function goStep3() {
+  ST.p = parseInt(document.getElementById('pumpLen').value) || 4;
+  document.getElementById('s3constraint').textContent = `|s| ≥ p = ${ST.p}`;
+  setCards(3); scrollToCard('step3');
+}
+
+function toggleManual() {
+  const w = document.getElementById('manualStrWrap');
+  w.style.display = w.style.display === 'none' ? '' : 'none';
+}
+
+function validateManualStr() {
+  const val = document.getElementById('manualStr').value.trim();
+  const errEl = document.getElementById('manualErr');
+  const inp = document.getElementById('manualStr');
+  if (!val) { inp.classList.remove('err-field'); errEl.style.display='none'; hideStrChosen(); return; }
+  if (!inLang(val)) {
+    inp.classList.add('err-field');
+    errEl.textContent = `"${val}" is NOT in ${getShortName()}.`;
+    errEl.style.display = 'block'; hideStrChosen(); return;
+  }
+  if (val.length < ST.p) {
+    inp.classList.add('err-field');
+    errEl.textContent = `|s| = ${val.length} must be ≥ p = ${ST.p}.`;
+    errEl.style.display = 'block'; hideStrChosen(); return;
+  }
+  inp.classList.remove('err-field'); errEl.style.display='none';
+  setChosenString(val);
+}
+
+function setChosenString(s) {
+  ST.s = s;
+  document.getElementById('strDisplay').textContent = s;
+  document.getElementById('strLen').textContent = `|s| = ${s.length}`;
+  document.getElementById('strChosen').style.display = '';
+  document.getElementById('step3Btn').style.display = '';
+}
+
+function hideStrChosen() {
+  document.getElementById('strChosen').style.display = 'none';
+  document.getElementById('step3Btn').style.display = 'none';
+}
+
+function goStep4() {
+  if (!ST.s) { alert('Please choose a string first.'); return; }
+  buildRuler();
+  document.getElementById('rulerWrap').style.display = '';
+  document.getElementById('lxInput').value = '';
+  document.getElementById('lyInput').value = '';
+  document.getElementById('decompResult').style.display = 'none';
+  document.getElementById('decompChips').style.display = 'none';
+  document.getElementById('stage4').innerHTML = '';
+  document.getElementById('step4Btn').style.display = 'none';
+  setCards(4); scrollToCard('step4');
+}
+
+function goStep5() {
+  setCards(5); scrollToCard('step5');
+  document.getElementById('pumpedDisplay').style.display = '';
+  document.getElementById('iRange').value = 1;
+  document.getElementById('iBadge').textContent = 1;
+  updatePump();
+}
+
+/* ═══════════════════════════════════
+   RULER
+═══════════════════════════════════ */
+function buildRuler() {
+  const s = ST.s;
+  const el = document.getElementById('charRuler');
+  el.innerHTML = '';
+  // figure out which char belongs to which symbol
+  const charToIdx = {};
+  ST.syms.forEach((sym,i) => { charToIdx[sym.char] = i; });
+
+  for (let i = 0; i < s.length; i++) {
+    const c = document.createElement('div');
+    c.className = 'char-cell'; c.id = 'rc'+i;
+    const si = charToIdx[s[i]] ?? 0;
+    const [bg,bc,tc] = CELL_PALETTES[si % CELL_PALETTES.length];
+    c.style.background = bg; c.style.borderColor = bc; c.style.color = tc;
+    c.innerHTML = `<span class="ch">${s[i]}</span><span class="ci">${i}</span>`;
+    el.appendChild(c);
+  }
+  buildZoneLegend();
+}
+
+function buildZoneLegend() {
+  document.getElementById('zoneLegend').innerHTML = `
+    <span class="zone-leg-item"><span class="zone-swatch" style="background:rgba(200,232,255,.55);border-color:#6bb8f0"></span>x region</span>
+    <span class="zone-leg-item"><span class="zone-swatch" style="background:rgba(194,245,216,.65);border-color:#5dcaa5"></span>y region</span>
+    <span class="zone-leg-item"><span class="zone-swatch" style="background:rgba(255,217,200,.55);border-color:#f0997b"></span>z region</span>`;
+}
+
+function highlightRuler(lx, ly) {
+  for (let i = 0; i < ST.s.length; i++) {
+    const c = document.getElementById('rc'+i);
+    if (!c) continue;
+    c.classList.remove('zone-x','zone-y','zone-z');
+    // restore original bg
+    const si = ST.syms.findIndex(sym => sym.char === ST.s[i]);
+    const [bg,bc,tc] = CELL_PALETTES[Math.max(0,si) % CELL_PALETTES.length];
+    c.style.background = bg; c.style.borderColor = bc; c.style.color = tc;
+    c.style.transform = '';
+    if (i < lx) c.classList.add('zone-x');
+    else if (i < lx+ly) c.classList.add('zone-y');
+    else c.classList.add('zone-z');
+  }
+}
+
+/* ═══════════════════════════════════
+   DECOMP CHECK
+═══════════════════════════════════ */
+function checkDecomp() {
+  const lx = parseInt(document.getElementById('lxInput').value);
+  const ly = parseInt(document.getElementById('lyInput').value);
+  const resEl = document.getElementById('decompResult');
+  const chipsEl = document.getElementById('decompChips');
+  const btnEl = document.getElementById('step4Btn');
+  const stageEl = document.getElementById('stage4');
+
+  if (isNaN(lx) || isNaN(ly)) {
+    resEl.style.display = 'none'; chipsEl.style.display='none'; btnEl.style.display='none'; stageEl.innerHTML=''; return;
+  }
+
+  const s = ST.s;
+  const p = ST.p;
+  const lz = s.length - lx - ly;
+  const lxy = lx + ly;
+
+  const checks = [
+    { label: `|xy| = ${lxy} ≤ p = ${p}`, ok: lxy <= p },
+    { label: `|y| = ${ly} ≥ 1`, ok: ly >= 1 },
+    { label: `lx + ly ≤ |s| = ${s.length}`, ok: lx >= 0 && ly >= 1 && lx+ly <= s.length },
+  ];
+  const allOk = checks.every(c => c.ok);
+
+  if (allOk) {
+    ST.lx = lx; ST.ly = ly;
+    const xT = s.slice(0, lx);
+    const yT = s.slice(lx, lx+ly);
+    const zT = s.slice(lx+ly);
+    highlightRuler(lx, ly);
+
+    resEl.className = 'xy-result xy-ok';
+    resEl.innerHTML = `✓  Valid decomposition!<br>
+      <span style="opacity:.8">x = "<strong>${xT||'ε'}</strong>"  (len ${lx})&emsp;
+      y = "<strong>${yT}</strong>"  (len ${ly})&emsp;
+      z = "<strong>${zT||'ε'}</strong>"  (len ${lz})</span>`;
+    resEl.style.display = '';
+
+    chipsEl.innerHTML = checks.map(c => `<span class="chip chip-ok">${c.label} ✓</span>`).join('');
+    chipsEl.style.display = '';
+
+    stageEl.innerHTML = `
+      <div class="pill-wrap"><div class="pill-tag">x</div><div class="pill pill-x">${xT||'ε'}</div></div>
+      <div class="pill-wrap"><div class="pill-tag">·</div><div style="font-size:1.5rem;color:rgba(10,10,18,.2);margin-bottom:10px">·</div></div>
+      <div class="pill-wrap"><div class="pill-tag">y</div><div class="pill pill-y">${yT}</div></div>
+      <div class="pill-wrap"><div class="pill-tag">·</div><div style="font-size:1.5rem;color:rgba(10,10,18,.2);margin-bottom:10px">·</div></div>
+      <div class="pill-wrap"><div class="pill-tag">z</div><div class="pill pill-z">${zT||'ε'}</div></div>`;
+    btnEl.style.display = '';
+  } else {
+    highlightRuler(Math.max(0,lx), Math.max(0,ly));
+    resEl.className = 'xy-result xy-bad';
+    resEl.innerHTML = checks.filter(c=>!c.ok).map(c=>`✗  ${c.label}`).join('<br>');
+    resEl.style.display = '';
+    chipsEl.innerHTML = checks.map(c => `<span class="chip ${c.ok?'chip-ok':'chip-bad'}">${c.label} ${c.ok?'✓':'✗'}</span>`).join('');
+    chipsEl.style.display = '';
+    stageEl.innerHTML = '';
+    btnEl.style.display = 'none';
+  }
+}
+
+/* ═══════════════════════════════════
+   PUMP & VERIFY
+═══════════════════════════════════ */
+function updatePump() {
+  const i = parseInt(document.getElementById('iRange').value);
+  document.getElementById('iBadge').textContent = i;
+  document.getElementById('iHead').textContent = i;
+
+  const s = ST.s;
+  const xT = s.slice(0, ST.lx);
+  const yT = s.slice(ST.lx, ST.lx + ST.ly);
+  const zT = s.slice(ST.lx + ST.ly);
+  const pumped = xT + yT.repeat(i) + zT;
+  const yi = yT.repeat(i) || 'ε';
+
+  document.getElementById('pumpedLbl').innerHTML = `xy<sup>${i}</sup>z =`;
+  document.getElementById('pumpedVal').textContent = pumped || 'ε';
+
+  // stage
+  document.getElementById('stage5').innerHTML = `
+    <div class="pill-wrap"><div class="pill-tag">x</div><div class="pill pill-x">${xT||'ε'}</div></div>
+    <div class="pill-wrap"><div class="pill-tag">y<sup style="font-size:9px">${i}</sup></div><div class="pill pill-y" style="word-break:break-all;max-width:220px">${yi}</div></div>
+    <div class="pill-wrap"><div class="pill-tag">z</div><div class="pill pill-z">${zT||'ε'}</div></div>`;
+
+  const inL = inLang(pumped);
+  const card = document.getElementById('verdictCard');
+  const defInfo = document.getElementById('defaultInfo');
+  const xT2 = s.slice(0, ST.lx), yT2 = s.slice(ST.lx, ST.lx+ST.ly), zT2 = s.slice(ST.lx+ST.ly);
+
+  if (i === 1) {
+    card.style.display = 'none'; defInfo.style.display = '';
+    defInfo.querySelector('.verdict-subtitle').textContent = `i = 1 restores original s — try i = 0, 2, 3…`;
+    return;
+  }
+
+  defInfo.style.display = 'none'; card.style.display = '';
+
+  if (inL) {
+    card.className = 'verdict-card vc-ok';
+    card.innerHTML = `
+      <div class="verdict-header">
+        <div class="verdict-icon">✓</div>
+        <div>
+          <div class="verdict-title">xy<sup>${i}</sup>z &nbsp;∈&nbsp; L</div>
+          <div class="verdict-subtitle">No contradiction for i = ${i}</div>
+        </div>
+      </div>
+      <div class="verdict-body">
+        The pumped string <strong>"${pumped||'ε'}"</strong> is still in the language.<br>
+        This does <strong>not</strong> prove regularity — you must check <em>all</em> i ≥ 0
+        and all valid decompositions. Try i = 0 or larger values.
+      </div>`;
+  } else {
+    card.className = 'verdict-card vc-not-regular';
+    card.innerHTML = `
+      <div class="verdict-header">
+        <div class="verdict-icon">✗</div>
+        <div>
+          <div class="verdict-title">Language is NOT Regular</div>
+          <div class="verdict-subtitle">Pumping Lemma violated at i = ${i}</div>
+        </div>
+      </div>
+      <div class="verdict-body">
+        <div class="proof-steps">
+          <div class="proof-step"><div class="ps-num">1</div><div>Assume L is regular. Then ∃ pumping length p = ${ST.p}.</div></div>
+          <div class="proof-step"><div class="ps-num">2</div><div>Choose s = <strong>"${ST.s}"</strong> ∈ L with |s| = ${ST.s.length} ≥ p.</div></div>
+          <div class="proof-step"><div class="ps-num">3</div><div>Decompose: x = <strong>"${xT2||'ε'}"</strong>, y = <strong>"${yT2}"</strong>, z = <strong>"${zT2||'ε'}"</strong>&emsp;(|xy| = ${ST.lx+ST.ly} ≤ p, |y| = ${ST.ly} ≥ 1 ✓)</div></div>
+          <div class="proof-step"><div class="ps-num">4</div><div>Pump: xy<sup>${i}</sup>z = <strong>"${pumped||'ε'}"</strong></div></div>
+          <div class="proof-step"><div class="ps-num">5</div><div><strong>"${pumped||'ε'}" ∉ L</strong> — contradiction! Pumping Lemma is violated.</div></div>
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;background:rgba(122,37,0,.1);border-radius:8px;font-size:12.5px;font-weight:700;">
+          ∴ &nbsp;L is not a regular language. &nbsp;&nbsp;□
+        </div>
+      </div>`;
+  }
+}
+
+/* ═══════════════════════════════════
+   HELPERS
+═══════════════════════════════════ */
+function getShortName() {
+  const syms = ST.syms;
+  if (!syms.length) return 'L';
+  return '{ ' + syms.map(s=>`${s.char}^${s.powerVar}`).join('') + ' | … }';
+}
+
+function setCards(active) {
+  ['step1','step2','step3','step4','step5'].forEach((id,i) => {
+    const n = i+1, el = document.getElementById(id);
+    el.className = 'step-card' + (n < active ? ' done' : n === active ? ' active' : ' locked');
+  });
+}
+
+function scrollToCard(id) {
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    const top = el.getBoundingClientRect().top + window.scrollY - 120;
+    window.scrollTo({top: Math.max(0, top), behavior: 'smooth'});
+  }, 80);
+}
+
+function restart() {
+  ST = { symCount:0, syms:[], constraints:[], p:4, s:'', lx:0, ly:0, memberFn:null };
+  document.getElementById('symCountInput').value = 1;
+  document.getElementById('symCountErr').style.display = 'none';
+  document.getElementById('symBuilderWrap').style.display = 'none';
+  document.getElementById('symBuilder').innerHTML = '';
+  document.getElementById('conBuilder').innerHTML = '';
+  document.getElementById('langFormula').innerHTML = '—';
+  document.getElementById('langMeta').textContent = '';
+  document.getElementById('langErr').style.display = 'none';
+  document.getElementById('pumpLen').value = 4;
+  document.getElementById('manualStrWrap').style.display = 'none';
+  document.getElementById('manualStr').value = '';
+  document.getElementById('manualStr').classList.remove('err-field');
+  document.getElementById('manualErr').style.display = 'none';
+  document.getElementById('strChosen').style.display = 'none';
+  document.getElementById('step3Btn').style.display = 'none';
+  document.getElementById('rulerWrap').style.display = 'none';
+  document.getElementById('charRuler').innerHTML = '';
+  document.getElementById('lxInput').value = '';
+  document.getElementById('lyInput').value = '';
+  document.getElementById('decompResult').style.display = 'none';
+  document.getElementById('decompChips').style.display = 'none';
+  document.getElementById('stage4').innerHTML = '';
+  document.getElementById('step4Btn').style.display = 'none';
+  document.getElementById('pumpedDisplay').style.display = 'none';
+  document.getElementById('stage5').innerHTML = '';
+  document.getElementById('verdictCard').style.display = 'none';
+  document.getElementById('defaultInfo').style.display = '';
+  document.getElementById('defaultInfo').querySelector('.verdict-subtitle').textContent = 'Move i to pump the string and check membership in L';
+  document.getElementById('iRange').value = 1;
+  document.getElementById('iBadge').textContent = 1;
+  setCards(1);
+  setTimeout(() => window.scrollTo({top:0,behavior:'smooth'}), 50);
+}
+
+setCards(1);
 </script>
-
 </body>
 </html>
-
