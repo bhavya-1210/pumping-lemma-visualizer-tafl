@@ -642,7 +642,13 @@ function buildMemberFn() {
   // user constraints
   ST.constraints.filter(Boolean).forEach(c => {
     if (!c.rhsExpr || !c.lhsVar || !c.op) return;
-    const op = c.op === '=' ? '===' : c.op;
+    let op = c.op;
+    // Convert operators to JavaScript syntax
+    if (op === '=') op = '===';
+    else if (op === '≥') op = '>=';
+    else if (op === '≤') op = '<=';
+    else if (op === '<') op = '<';
+    else if (op === '>') op = '>';
     // replace power var names in rhsExpr with their values
     code += `if (!(${c.lhsVar} ${op} (${c.rhsExpr}))) return false;\n`;
   });
@@ -693,24 +699,63 @@ function tryGenerate(targetLen) {
 
   const cons = ST.constraints.filter(Boolean).filter(c => c.rhsExpr && c.lhsVar && c.op);
 
-  // simple approach: distribute evenly, then apply constraints
-  const base = Math.max(1, Math.floor(targetLen / n));
-  const vals = syms.map((s,i) => Math.max(mins[i], base));
-
-  // try to satisfy equality constraints by solving for one variable
-  for (const c of cons) {
-    if (c.op === '=') {
-      const lhsIdx = syms.findIndex(s => s.powerVar === c.lhsVar);
-      if (lhsIdx < 0) continue;
+  // Try multiple distribution strategies
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const vals = mins.slice(); // start with minimums
+    
+    // Distribute remaining length
+    let remaining = targetLen - minTotal;
+    for (let i = 0; i < n && remaining > 0; i++) {
+      const add = Math.floor(remaining / (n - i));
+      vals[i] += add;
+      remaining -= add;
+    }
+    if (remaining > 0) vals[n-1] += remaining;
+    
+    // Check if this satisfies all constraints
+    let valid = true;
+    
+    for (const c of cons) {
       try {
-        // evaluate rhs with current vals
-        const tmpFn = buildEvalFn(c.rhsExpr, syms, vals);
-        vals[lhsIdx] = Math.max(mins[lhsIdx], tmpFn);
-      } catch {}
+        const lhsIdx = syms.findIndex(s => s.powerVar === c.lhsVar);
+        if (lhsIdx < 0) continue;
+        
+        let code = '';
+        syms.forEach((s,i) => { code += `const ${s.powerVar} = ${vals[i]};\n`; });
+        code += `return (${c.rhsExpr});`;
+        const rhsVal = new Function(code)();
+        
+        const lhsVal = vals[lhsIdx];
+        let condMet = false;
+        
+        if (c.op === '=') condMet = lhsVal === rhsVal;
+        else if (c.op === '≥') condMet = lhsVal >= rhsVal;
+        else if (c.op === '≤') condMet = lhsVal <= rhsVal;
+        else if (c.op === '<') condMet = lhsVal < rhsVal;
+        else if (c.op === '>') condMet = lhsVal > rhsVal;
+        
+        if (!condMet) {
+          valid = false;
+          break;
+        }
+      } catch {
+        valid = false;
+        break;
+      }
+    }
+    
+    if (valid) {
+      return syms.map((s,i) => (s.char || String.fromCharCode(97+i)).repeat(vals[i])).join('');
+    }
+    
+    // Adjust values for next attempt
+    if (attempt < 9) {
+      const randIdx = Math.floor(Math.random() * n);
+      vals[randIdx] = Math.min(targetLen - minTotal + mins[randIdx], vals[randIdx] + 1);
     }
   }
-
-  return syms.map((s,i) => (s.char || String.fromCharCode(97+i)).repeat(vals[i])).join('');
+  
+  return null;
 }
 
 function buildEvalFn(expr, syms, vals) {
