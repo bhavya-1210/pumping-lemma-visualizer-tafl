@@ -46,20 +46,26 @@ h1 span{color:var(--accent)}
 .step-card.done{opacity:.6}
 .step-card.done::after{content:'✓';position:absolute;top:14px;right:18px;font-size:18px;color:#5dcaa5;font-weight:800}
 .step-card.active{box-shadow:0 2px 0 rgba(255,255,255,.8) inset,0 8px 32px rgba(10,10,18,.1),0 0 0 2px rgba(255,77,0,.13)}
-.step-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.back-btn{position:absolute;top:18px;right:20px;width:32px;height:32px;border-radius:8px;
+  background:rgba(10,10,18,.06);border:1.5px solid rgba(10,10,18,.12);color:rgba(10,10,18,.55);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:all .15s;z-index:10}
+.back-btn:hover{background:rgba(10,10,18,.12);color:var(--ink);transform:translateY(-1px)}
+.step-card.locked .back-btn{pointer-events:none}
+.step-head{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-right:44px}
 .step-num{width:30px;height:30px;border-radius:9px;background:rgba(10,10,18,.1);
   font-family:'DM Mono',monospace;font-size:13px;font-weight:600;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,color .2s}
 .step-card.active .step-num{background:var(--accent);color:#fff}
 .step-card.done .step-num{background:#5dcaa5;color:#fff}
-.step-title{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.step-title{font-size:15px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 
 /* FIELDS */
-.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
-.field-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(10,10,18,.38)}
+.field{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.field-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);font-weight:400;background:rgba(10,10,18,.08);padding:6px 10px;border-radius:6px;display:inline-block;white-space:nowrap;width:fit-content}
 input[type=text],input[type=number],select{
   width:100%;padding:10px 13px;background:rgba(255,255,255,.9);border:1.5px solid rgba(10,10,18,.11);
-  border-radius:10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--ink);
+  border-radius:10px;font-family:'DM Mono',monospace;font-size:14px;color:var(--ink);
   transition:border-color .18s,box-shadow .18s;outline:none;appearance:none}
 input:focus,select:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(255,77,0,.09)}
 input.err-field{border-color:#f0997b!important;box-shadow:0 0 0 3px rgba(240,153,123,.15)!important}
@@ -72,7 +78,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 /* BUTTON */
 .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:var(--ink);color:#fff;border:none;border-radius:10px;
   font-family:'Syne',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.02em;
-  cursor:pointer;transition:transform .15s,box-shadow .15s,background .2s;margin-top:4px}
+  cursor:pointer;transition:transform .15s,box-shadow .15s,background .2s;margin-top:18px}
 .btn:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.15)}
 .btn-accent{background:var(--accent)}
 .btn-accent:hover{background:#e03e00;box-shadow:0 5px 16px rgba(255,77,0,.25)}
@@ -81,30 +87,30 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
 
 /* INFO / ERROR NOTES */
-.note{font-family:'DM Mono',monospace;font-size:10px;color:rgba(10,10,18,.36);line-height:1.65;margin-top:4px}
-.err{font-family:'DM Mono',monospace;font-size:10px;color:#a83200;margin-top:5px;line-height:1.5;display:none}
-code{background:rgba(10,10,18,.07);padding:1px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10.5px}
+.note{font-family:'DM Mono',monospace;font-size:12px;color:var(--ink);line-height:1.6;margin-top:8px;background:rgba(10,10,18,.06);padding:10px 14px;border-radius:8px;border-left:3px solid var(--accent)}
+.err{font-family:'DM Mono',monospace;font-size:11px;color:#a83200;margin-top:5px;line-height:1.5;display:none}
+code{background:rgba(10,10,18,.07);padding:1px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11.5px}
 
 /* LANGUAGE PREVIEW BOX */
 .lang-preview{background:rgba(255,77,0,.04);border:1.5px solid rgba(255,77,0,.15);border-radius:14px;
   padding:16px 20px;margin:14px 0 6px;text-align:center}
-.lang-formula{font-family:'DM Mono',monospace;font-size:1.05rem;font-weight:500;color:var(--ink);line-height:1.8;word-break:break-word}
+.lang-formula{font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:500;color:var(--ink);line-height:1.8;word-break:break-word}
 .lang-formula .sym-a{color:var(--blue);font-weight:700}
 .lang-formula .sym-b{color:var(--green);font-weight:700}
 .lang-formula .sym-c{color:var(--red);font-weight:700}
 .lang-formula .sym-d{color:#7a009a;font-weight:700}
-.lang-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(10,10,18,.38);margin-top:6px}
+.lang-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);margin-top:8px;background:rgba(10,10,18,.06);padding:6px 10px;border-radius:6px;display:inline-block;font-weight:400}
 
 /* SYMBOL BUILDER */
 .sym-builder{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
 .sym-row{display:grid;grid-template-columns:80px 80px 1fr;gap:10px;align-items:end;
   background:rgba(255,255,255,.6);border:1.5px solid rgba(10,10,18,.07);border-radius:12px;padding:10px 14px}
 .sym-row-head{display:grid;grid-template-columns:80px 80px 1fr;gap:10px;
-  font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;
-  color:rgba(10,10,18,.3);padding:0 14px;margin-bottom:2px}
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink);padding:6px 10px;margin-bottom:8px;background:rgba(10,10,18,.08);border-radius:6px;font-weight:400}
 .add-sym-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
   background:rgba(10,10,18,.06);border:1.5px dashed rgba(10,10,18,.15);border-radius:8px;
-  font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;color:rgba(10,10,18,.45);
+  font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:rgba(10,10,18,.45);
   transition:all .15s;margin-top:4px;width:fit-content}
 .add-sym-btn:hover{background:rgba(255,77,0,.06);border-color:var(--accent);color:var(--accent)}
 .remove-sym{width:24px;height:24px;border-radius:6px;background:rgba(168,50,0,.08);border:none;
@@ -116,12 +122,12 @@ code{background:rgba(10,10,18,.07);padding:1px 6px;border-radius:4px;font-family
 .constraint-builder{margin-top:4px}
 .con-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;
   background:rgba(255,255,255,.6);border:1.5px solid rgba(10,10,18,.07);border-radius:10px;padding:8px 12px}
-.con-select{width:auto;flex-shrink:0;min-width:70px;padding:6px 28px 6px 10px;font-size:12px}
-.con-op{font-family:'DM Mono',monospace;font-size:13px;color:rgba(10,10,18,.4);flex-shrink:0}
-.con-num{width:64px;padding:6px 10px;font-size:12px}
+.con-select{width:auto;flex-shrink:0;min-width:70px;padding:6px 28px 6px 10px;font-size:13px}
+.con-op{font-family:'DM Mono',monospace;font-size:14px;color:rgba(10,10,18,.4);flex-shrink:0}
+.con-num{width:64px;padding:6px 10px;font-size:13px}
 .add-con-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
   background:rgba(10,10,18,.05);border:1.5px dashed rgba(10,10,18,.12);border-radius:8px;
-  font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;color:rgba(10,10,18,.4);transition:all .15s}
+  font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:rgba(10,10,18,.4);transition:all .15s}
 .add-con-btn:hover{background:rgba(255,77,0,.05);border-color:var(--accent);color:var(--accent)}
 .remove-con{background:none;border:none;color:rgba(10,10,18,.25);cursor:pointer;font-size:16px;padding:0 2px;transition:color .15s}
 .remove-con:hover{color:#a83200}
@@ -133,7 +139,7 @@ code{background:rgba(10,10,18,.07);padding:1px 6px;border-radius:4px;font-family
 
 /* DECOMP XY INPUT */
 .xy-input-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0}
-.xy-result{border-radius:12px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:12.5px;
+.xy-result{border-radius:12px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:13.5px;
   border:2px solid;margin-top:10px;line-height:1.7;font-weight:500}
 .xy-ok{background:rgba(194,245,216,.4);border-color:#5dcaa5;color:var(--green)}
 .xy-bad{background:rgba(255,217,200,.4);border-color:#f0997b;color:var(--red)}
@@ -141,7 +147,7 @@ code{background:rgba(10,10,18,.07);padding:1px 6px;border-radius:4px;font-family
 
 /* CHAR RULER */
 .ruler-wrap{margin:12px 0 6px}
-.ruler-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(10,10,18,.3);margin-bottom:6px}
+.ruler-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin-bottom:8px;background:rgba(10,10,18,.08);padding:6px 10px;border-radius:6px;display:inline-block;font-weight:400}
 .char-ruler{display:flex;gap:3px;flex-wrap:wrap}
 .char-cell{font-family:'DM Mono',monospace;width:34px;height:42px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;border-radius:8px;border:2px solid transparent;flex-shrink:0;gap:2px;transition:all .2s}
@@ -151,7 +157,7 @@ code{background:rgba(10,10,18,.07);padding:1px 6px;border-radius:4px;font-family
 .char-cell.zone-y{border-color:#5dcaa5;background:rgba(194,245,216,.65);color:var(--green);font-weight:900;transform:translateY(-2px)}
 .char-cell.zone-z{border-color:#f0997b;background:rgba(255,217,200,.55);color:var(--red)}
 .zone-legend{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
-.zone-leg-item{font-family:'DM Mono',monospace;font-size:9.5px;display:flex;align-items:center;gap:5px}
+.zone-leg-item{font-family:'DM Mono',monospace;font-size:11px;display:flex;align-items:center;gap:5px;font-weight:500}
 .zone-swatch{width:12px;height:12px;border-radius:3px;border:2px solid}
 
 /* PUMP SECTION */
@@ -167,13 +173,13 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
 
 /* PUMPED STRING DISPLAY */
 .pumped-display{background:rgba(10,10,18,.04);border:1.5px solid rgba(10,10,18,.08);border-radius:12px;padding:12px 18px;margin:8px 0;display:none}
-.pumped-lbl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(10,10,18,.3);margin-bottom:4px}
+.pumped-lbl{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);margin-bottom:6px;background:rgba(10,10,18,.08);padding:6px 10px;border-radius:6px;display:inline-block;font-weight:400}
 .pumped-val{font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:600;word-break:break-all;color:var(--ink)}
 
 /* PARTS STAGE */
 .stage{display:flex;justify-content:center;align-items:flex-end;gap:12px;padding:14px 0 6px;flex-wrap:wrap}
 .pill-wrap{display:flex;flex-direction:column;align-items:center;gap:7px}
-.pill-tag{font-family:'DM Mono',monospace;font-size:11px;font-style:italic;color:rgba(10,10,18,.35)}
+.pill-tag{font-family:'DM Mono',monospace;font-size:11px;font-style:italic;color:var(--ink);font-weight:500}
 .pill{padding:12px 22px;border-radius:12px;font-family:'DM Mono',monospace;font-size:1.35rem;font-weight:600;
   border:2px solid;min-width:50px;text-align:center;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
 .pill:hover{transform:translateY(-4px)}
@@ -246,6 +252,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
      STEP 1 — DEFINE LANGUAGE
 ═══════════════════════════════════════ -->
 <div class="step-card active" id="step1">
+  <button class="back-btn" onclick="goStepBack(1)" title="Go back" style="display:none">←</button>
   <div class="step-head">
     <div class="step-num">1</div>
     <span class="step-title">Define Your Language</span>
@@ -289,6 +296,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
      STEP 2 — PUMPING LENGTH
 ═══════════════════════════════════════ -->
 <div class="step-card locked" id="step2">
+  <button class="back-btn" onclick="goStepBack(2)" title="Go back">←</button>
   <div class="step-head">
     <div class="step-num">2</div>
     <span class="step-title">Pumping Length  p</span>
@@ -309,10 +317,11 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
      STEP 3 — CHOOSE STRING
 ═══════════════════════════════════════ -->
 <div class="step-card locked" id="step3">
+  <button class="back-btn" onclick="goStepBack(3)" title="Go back">←</button>
   <div class="step-head">
     <div class="step-num">3</div>
     <span class="step-title">Choose String  s ∈ L</span>
-    <span id="s3constraint" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(10,10,18,.35);margin-left:auto">|s| ≥ p</span>
+    <span id="s3constraint" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink);margin-left:auto;font-weight:500">|s| ≥ p</span>
   </div>
 
   <div style="display:flex;gap:6px;margin-bottom:14px">
@@ -330,9 +339,9 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
 
   <div id="strChosen" style="display:none">
     <div style="background:rgba(10,10,18,.04);border:1.5px solid rgba(10,10,18,.08);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(10,10,18,.32)">s =</span>
+      <span style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink);font-weight:500">s =</span>
       <span style="font-family:'DM Mono',monospace;font-size:1.15rem;font-weight:600" id="strDisplay">—</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(10,10,18,.32);margin-left:auto" id="strLen"></span>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink);margin-left:auto;font-weight:500" id="strLen"></span>
     </div>
   </div>
 
@@ -345,6 +354,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
      STEP 4 — DECOMPOSE s = xyz
 ═══════════════════════════════════════ -->
 <div class="step-card locked" id="step4">
+  <button class="back-btn" onclick="goStepBack(4)" title="Go back">←</button>
   <div class="step-head">
     <div class="step-num">4</div>
     <span class="step-title">Decompose  s = x · y · z</span>
@@ -389,6 +399,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
      STEP 5 — PUMP & VERIFY
 ═══════════════════════════════════════ -->
 <div class="step-card locked" id="step5">
+  <button class="back-btn" onclick="goStepBack(5)" title="Go back">←</button>
   <div class="step-head">
     <div class="step-num">5</div>
     <span class="step-title">Pump  xy<sup id="iHead">i</sup>z  and Verify</span>
@@ -421,14 +432,6 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
       If <strong>any</strong> i causes xy<sup>i</sup>z ∉ L, the Pumping Lemma is <strong>violated</strong>.
     </div>
   </div>
-</div>
-
-<!-- RULES -->
-<div class="rules-banner">
-  <span class="rule-chip">① s = xyz</span>
-  <span class="rule-chip">② |xy| ≤ p</span>
-  <span class="rule-chip">③ |y| ≥ 1</span>
-  <span class="rule-chip">④ xyⁱz ∈ L  ∀i ≥ 0</span>
 </div>
 
 <div class="restart-footer">
@@ -794,6 +797,13 @@ function goStep5() {
   updatePump();
 }
 
+function goStepBack(fromStep) {
+  if (fromStep === 2) { setCards(1); scrollToCard('step1'); }
+  else if (fromStep === 3) { setCards(2); scrollToCard('step2'); }
+  else if (fromStep === 4) { setCards(3); scrollToCard('step3'); }
+  else if (fromStep === 5) { setCards(4); scrollToCard('step4'); }
+}
+
 /* ═══════════════════════════════════
    RULER
 ═══════════════════════════════════ */
@@ -974,7 +984,7 @@ function updatePump() {
           <div class="proof-step"><div class="ps-num">5</div><div><strong>"${pumped||'ε'}" ∉ L</strong> — contradiction! Pumping Lemma is violated.</div></div>
         </div>
         <div style="margin-top:12px;padding:10px 14px;background:rgba(122,37,0,.1);border-radius:8px;font-size:12.5px;font-weight:700;">
-          ∴ &nbsp;L is not a regular language. &nbsp;&nbsp;□
+          ∴ &nbsp;L is not a regular language.
         </div>
       </div>`;
   }
