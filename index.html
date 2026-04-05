@@ -44,7 +44,7 @@ h1 span{color:var(--accent)}
   transition:opacity .3s,transform .3s,box-shadow .3s;position:relative;overflow:hidden}
 .step-card.locked{opacity:.35;pointer-events:none;transform:translateY(4px)}
 .step-card.done{opacity:.6}
-.step-card.done::after{content:'✓';position:absolute;top:14px;right:18px;font-size:18px;color:#5dcaa5;font-weight:800}
+/* .step-card.done tick removed per user request */
 .step-card.active{box-shadow:0 2px 0 rgba(255,255,255,.8) inset,0 8px 32px rgba(10,10,18,.1),0 0 0 2px rgba(255,77,0,.13)}
 .back-btn{position:absolute;top:18px;right:20px;width:32px;height:32px;border-radius:8px;
   background:rgba(10,10,18,.06);border:1.5px solid rgba(10,10,18,.12);color:rgba(10,10,18,.55);
@@ -233,6 +233,27 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
   font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:rgba(10,10,18,.45);
   transition:all .15s}
 .restart-btn:hover{background:rgba(10,10,18,.12);color:var(--ink);transform:translateY(-1px)}
+
+/* OTHER DECOMPOSITIONS */
+.btn-other-decomp{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;
+  background:rgba(10,10,18,.07);border:1.5px solid rgba(10,10,18,.13);border-radius:10px;
+  font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.04em;
+  cursor:pointer;color:rgba(10,10,18,.6);transition:all .15s;margin-top:14px}
+.btn-other-decomp:hover{background:rgba(10,10,18,.13);color:var(--ink);transform:translateY(-1px)}
+.btn-other-decomp.active{background:rgba(10,10,18,.13);color:var(--ink)}
+.other-decomp-panel{margin-top:12px;border-radius:14px;overflow:hidden;border:1.5px solid rgba(10,10,18,.1);display:none}
+.other-decomp-head-row{background:rgba(10,10,18,.05);padding:11px 16px;
+  font-family:'DM Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(10,10,18,.5)}
+.decomp-table{width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:11.5px}
+.decomp-table th{text-align:left;padding:7px 10px;background:rgba(10,10,18,.06);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:rgba(10,10,18,.5)}
+.decomp-table td{padding:8px 10px;border-bottom:1px solid rgba(10,10,18,.05);vertical-align:middle;background:rgba(255,255,255,.5)}
+.decomp-table tr:last-child td{border-bottom:none}
+.decomp-table tr:hover td{background:rgba(255,255,255,.85)}
+.decomp-badge-in{display:inline-block;padding:2px 8px;border-radius:99px;background:rgba(194,245,216,.6);border:1.5px solid #5dcaa5;color:#006b35;font-size:10px;font-weight:700}
+.decomp-badge-out{display:inline-block;padding:2px 8px;border-radius:99px;background:rgba(255,217,200,.6);border:1.5px solid #f0997b;color:#a83200;font-size:10px;font-weight:700}
+.decomp-note-bad{color:#a83200;font-size:10px;font-style:italic}
+.decomp-note-ok{color:#006b35;font-size:10px;font-style:italic}
+.decomp-row-highlight td{background:rgba(255,217,200,.25)!important}
 </style>
 </head>
 <body>
@@ -304,7 +325,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
   <div style="max-width:220px">
     <div class="field">
       <span class="field-label">Value of p  (integer ≥ 1)</span>
-      <input type="number" id="pumpLen" value="4" min="1" max="30">
+      <input type="number" id="pumpLen" value="5" min="1" max="30">
     </div>
   </div>
   <p class="note">The pumping lemma states: if L is regular, ∃ p such that every s ∈ L with |s| ≥ p can be decomposed as xyz satisfying the three conditions.</p>
@@ -406,7 +427,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
   </div>
 
   <div class="pump-row">
-    <input type="range" id="iRange" min="0" max="7" value="1" oninput="updatePump()">
+    <input type="range" id="iRange" min="0" max="5" value="1" oninput="updatePump()">
     <div class="i-badge" id="iBadge">1</div>
   </div>
 
@@ -431,6 +452,22 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
       Set i = 0, 2, 3… and observe whether xy<sup>i</sup>z stays in L.<br>
       If <strong>any</strong> i causes xy<sup>i</sup>z ∉ L, the Pumping Lemma is <strong>violated</strong>.
     </div>
+  </div>
+
+  <!-- OTHER DECOMPOSITIONS BUTTON + PANEL -->
+  <button class="btn-other-decomp" id="btnOtherDecomp" style="display:none" onclick="toggleOtherDecomp()">
+    🔍 Show other valid decompositions
+  </button>
+  <div class="other-decomp-panel" id="otherDecompPanel">
+    <div class="other-decomp-head-row" id="otherDecompHeadRow">Other valid (x, y, z) decompositions — pumped with current i</div>
+    <table class="decomp-table">
+      <thead>
+        <tr>
+          <th>|x|</th><th>|y|</th><th>x</th><th>y</th><th>z</th><th>xy<sup>i</sup>z</th><th>∈ L?</th><th>Note</th>
+        </tr>
+      </thead>
+      <tbody id="otherDecompRows"></tbody>
+    </table>
   </div>
 </div>
 
@@ -560,7 +597,7 @@ function addConstraint() {
       <option value="<">&lt;</option>
       <option value=">">&gt;</option>
     </select>
-    <input class="con-num" type="text" placeholder="n1 or 2n0+1" value=""
+    <input class="con-num" type="text" placeholder="n1 or 2*n0+1" value=""
       oninput="updateCon(${idx},'rhsExpr',this.value)">
     <button class="remove-con" onclick="removeCon(${idx})">×</button>`;
   document.getElementById('conBuilder').appendChild(row);
@@ -679,9 +716,9 @@ function autoGenString() {
   if (!ST.memberFn) { alert('Please finish defining your language first.'); return; }
   const p = ST.p;
   // try increasing values of n until we find one satisfying constraints and |s|>p
-  for (let total = p + 1; total <= p * 6 + 10; total++) {
+  for (let total = p; total <= p * 8 + 20; total++) {
     const s = tryGenerate(total);
-    if (s && inLang(s) && s.length > p) {
+    if (s && inLang(s) && s.length >= p) {
       setChosenString(s);
       return;
     }
@@ -694,67 +731,106 @@ function tryGenerate(targetLen) {
   if (!syms.length) return null;
   const n = syms.length;
   const mins = syms.map(s => s.min ?? 1);
-  const minTotal = mins.reduce((a,b)=>a+b, 0);
+  const minTotal = mins.reduce((a,b) => a+b, 0);
   if (targetLen < minTotal) return null;
 
   const cons = ST.constraints.filter(Boolean).filter(c => c.rhsExpr && c.lhsVar && c.op);
 
-  // Try multiple distribution strategies
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const vals = mins.slice(); // start with minimums
-    
-    // Distribute remaining length
-    let remaining = targetLen - minTotal;
-    for (let i = 0; i < n && remaining > 0; i++) {
-      const add = Math.floor(remaining / (n - i));
-      vals[i] += add;
-      remaining -= add;
-    }
-    if (remaining > 0) vals[n-1] += remaining;
-    
-    // Check if this satisfies all constraints
-    let valid = true;
-    
+  // Helper: evaluate all constraints for a given vals array
+  function evalsOk(vals) {
     for (const c of cons) {
       try {
         const lhsIdx = syms.findIndex(s => s.powerVar === c.lhsVar);
         if (lhsIdx < 0) continue;
-        
         let code = '';
-        syms.forEach((s,i) => { code += `const ${s.powerVar} = ${vals[i]};\n`; });
+        syms.forEach((s, i) => { code += `const ${s.powerVar} = ${vals[i]};\n`; });
         code += `return (${c.rhsExpr});`;
         const rhsVal = new Function(code)();
-        
         const lhsVal = vals[lhsIdx];
-        let condMet = false;
-        
-        if (c.op === '=') condMet = lhsVal === rhsVal;
-        else if (c.op === '≥') condMet = lhsVal >= rhsVal;
-        else if (c.op === '≤') condMet = lhsVal <= rhsVal;
-        else if (c.op === '<') condMet = lhsVal < rhsVal;
-        else if (c.op === '>') condMet = lhsVal > rhsVal;
-        
-        if (!condMet) {
-          valid = false;
-          break;
-        }
-      } catch {
-        valid = false;
-        break;
-      }
+        let ok = false;
+        if      (c.op === '=')  ok = lhsVal === rhsVal;
+        else if (c.op === '≥')  ok = lhsVal >= rhsVal;
+        else if (c.op === '≤')  ok = lhsVal <= rhsVal;
+        else if (c.op === '<')  ok = lhsVal <  rhsVal;
+        else if (c.op === '>')  ok = lhsVal >  rhsVal;
+        if (!ok) return false;
+      } catch { return false; }
     }
-    
-    if (valid) {
-      return syms.map((s,i) => (s.char || String.fromCharCode(97+i)).repeat(vals[i])).join('');
-    }
-    
-    // Adjust values for next attempt
-    if (attempt < 9) {
-      const randIdx = Math.floor(Math.random() * n);
-      vals[randIdx] = Math.min(targetLen - minTotal + mins[randIdx], vals[randIdx] + 1);
+    return true;
+  }
+
+  // Strategy 1: try simple distributions first
+  // For each distribution of targetLen across n vars (all >= mins), check constraints.
+  // We'll try a range of "skew" patterns before random.
+
+  function buildAndCheck(vals) {
+    if (vals.reduce((a,b)=>a+b,0) !== targetLen) return null;
+    if (vals.some((v,i) => v < mins[i])) return null;
+    if (!evalsOk(vals)) return null;
+    return syms.map((s,i) => (s.char || String.fromCharCode(97+i)).repeat(vals[i])).join('');
+  }
+
+  // Try systematic distributions: put "extra" weight on each symbol in turn
+  const extra = targetLen - minTotal;
+  // pattern 1: concentrate extra on first symbol
+  for (let focus = 0; focus < n; focus++) {
+    const vals = mins.slice();
+    vals[focus] += extra;
+    const r = buildAndCheck(vals);
+    if (r) return r;
+  }
+
+  // pattern 2: split extra evenly, biased toward each pair
+  for (let i = 0; i < n; i++) {
+    for (let j = i; j < n; j++) {
+      const vals = mins.slice();
+      const half = Math.floor(extra / 2);
+      vals[i] += half;
+      vals[j] += extra - half;
+      const r = buildAndCheck(vals);
+      if (r) return r;
     }
   }
-  
+
+  // pattern 3: for strict inequalities (> or <), try giving the "larger" side progressively more
+  for (const c of cons) {
+    if (c.op !== '>' && c.op !== '<') continue;
+    const lhsIdx = syms.findIndex(s => s.powerVar === c.lhsVar);
+    if (lhsIdx < 0) continue;
+    // For n0 > n1: try vals where n0 gets much more
+    for (let bonus = 1; bonus <= extra; bonus++) {
+      const vals = mins.slice();
+      const remaining = extra - bonus;
+      if (c.op === '>') {
+        // give lhsIdx extra
+        vals[lhsIdx] += bonus + remaining;
+      } else {
+        // give other indices extra
+        const otherIdx = lhsIdx === 0 ? 1 : 0;
+        if (otherIdx < n) vals[otherIdx] += bonus + remaining;
+      }
+      if (vals.reduce((a,b)=>a+b,0) !== targetLen) continue;
+      const r = buildAndCheck(vals);
+      if (r) return r;
+    }
+  }
+
+  // pattern 4: random attempts with higher variance
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const vals = mins.slice();
+    let rem = extra;
+    // randomly distribute remaining
+    const order = Array.from({length:n}, (_,i)=>i).sort(() => Math.random()-.5);
+    for (let k = 0; k < order.length - 1 && rem > 0; k++) {
+      const give = Math.floor(Math.random() * (rem + 1));
+      vals[order[k]] += give;
+      rem -= give;
+    }
+    vals[order[order.length-1]] += rem;
+    const r = buildAndCheck(vals);
+    if (r) return r;
+  }
+
   return null;
 }
 
@@ -839,6 +915,11 @@ function goStep5() {
   document.getElementById('pumpedDisplay').style.display = '';
   document.getElementById('iRange').value = 1;
   document.getElementById('iBadge').textContent = 1;
+  document.getElementById('btnOtherDecomp').style.display = 'none';
+  document.getElementById('btnOtherDecomp').classList.remove('active');
+  document.getElementById('btnOtherDecomp').textContent = '🔍 Show other valid decompositions';
+  document.getElementById('otherDecompPanel').style.display = 'none';
+  document.getElementById('otherDecompRows').innerHTML = '';
   updatePump();
 }
 
@@ -990,6 +1071,9 @@ function updatePump() {
   if (i === 1) {
     card.style.display = 'none'; defInfo.style.display = '';
     defInfo.querySelector('.verdict-subtitle').textContent = `i = 1 restores original s — try i = 0, 2, 3…`;
+    document.getElementById('btnOtherDecomp').style.display = 'none';
+    document.getElementById('otherDecompPanel').style.display = 'none';
+    document.getElementById('otherDecompRows').innerHTML = '';
     return;
   }
 
@@ -1033,6 +1117,109 @@ function updatePump() {
         </div>
       </div>`;
   }
+
+  buildOtherDecomps(i);
+}
+
+/* ═══════════════════════════════════
+   OTHER DECOMPOSITIONS
+═══════════════════════════════════ */
+function getAllValidDecomps() {
+  const s = ST.s;
+  const p = ST.p;
+  const results = [];
+  for (let lx = 0; lx <= s.length; lx++) {
+    for (let ly = 1; ly <= s.length - lx; ly++) {
+      if (lx + ly > p) continue;  // |xy| <= p
+      if (lx + ly > s.length) continue;
+      results.push({ lx, ly });
+    }
+  }
+  return results;
+}
+
+function toggleOtherDecomp() {
+  const panel = document.getElementById('otherDecompPanel');
+  const btn = document.getElementById('btnOtherDecomp');
+  const open = panel.style.display === 'block';
+  if (open) {
+    panel.style.display = 'none';
+    btn.textContent = btn.getAttribute('data-count-label') || '🔍 Show other valid decompositions';
+    btn.classList.remove('active');
+  } else {
+    panel.style.display = 'block';
+    btn.textContent = '✕ Hide other decompositions';
+    btn.classList.add('active');
+  }
+}
+
+function buildOtherDecomps(currentI) {
+  const btn = document.getElementById('btnOtherDecomp');
+  const panel = document.getElementById('otherDecompPanel');
+  const tbody = document.getElementById('otherDecompRows');
+  const headRow = document.getElementById('otherDecompHeadRow');
+  const s = ST.s;
+
+  const decomps = getAllValidDecomps();
+  const others = decomps.filter(d => !(d.lx === ST.lx && d.ly === ST.ly));
+
+  if (others.length === 0) {
+    btn.style.display = 'none';
+    panel.style.display = 'none';
+    return;
+  }
+
+  // Update count on button
+  const countLabel = `🔍 Show ${others.length} other valid decomposition${others.length > 1 ? 's' : ''}`;
+  btn.style.display = '';
+  btn.setAttribute('data-count-label', countLabel);
+  if (!btn.classList.contains('active')) {
+    btn.textContent = countLabel;
+  }
+
+  headRow.textContent = `${others.length} other valid (x, y, z) decompositions — pumped with i = ${currentI}`;
+
+  const rows = others.map(d => {
+    const xT = s.slice(0, d.lx);
+    const yT = s.slice(d.lx, d.lx + d.ly);
+    const zT = s.slice(d.lx + d.ly);
+    const pumped = xT + yT.repeat(currentI) + zT;
+    const inL = inLang(pumped);
+
+    // Find lowest i ≠ 1, i >= 0 that violates membership
+    let violatingI = null;
+    if (inL) {
+      for (let testI = 0; testI <= 7; testI++) {
+        if (testI === 1) continue;
+        if (!inLang(xT + yT.repeat(testI) + zT)) { violatingI = testI; break; }
+      }
+    }
+
+    const badge = inL
+      ? `<span class="decomp-badge-in">∈ L</span>`
+      : `<span class="decomp-badge-out">∉ L</span>`;
+
+    const note = !inL
+      ? `<span class="decomp-note-bad">violated at i = ${currentI}</span>`
+      : violatingI !== null
+        ? `<span class="decomp-note-ok">try i = ${violatingI} to violate</span>`
+        : `<span class="decomp-note-ok">stays ∈ L for i = 0–7</span>`;
+
+    const highlight = !inL ? ' class="decomp-row-highlight"' : '';
+
+    return `<tr${highlight}>
+      <td>${d.lx}</td>
+      <td>${d.ly}</td>
+      <td><span style="color:var(--blue);font-weight:700">${xT || 'ε'}</span></td>
+      <td><span style="color:var(--green);font-weight:700">${yT}</span></td>
+      <td><span style="color:var(--red);font-weight:700">${zT || 'ε'}</span></td>
+      <td style="word-break:break-all;max-width:110px;font-weight:600">${pumped || 'ε'}</td>
+      <td>${badge}</td>
+      <td>${note}</td>
+    </tr>`;
+  }).join('');
+
+  tbody.innerHTML = rows;
 }
 
 /* ═══════════════════════════════════
@@ -1069,7 +1256,7 @@ function restart() {
   document.getElementById('langFormula').innerHTML = '—';
   document.getElementById('langMeta').textContent = '';
   document.getElementById('langErr').style.display = 'none';
-  document.getElementById('pumpLen').value = 4;
+  document.getElementById('pumpLen').value = 5;
   document.getElementById('manualStrWrap').style.display = 'none';
   document.getElementById('manualStr').value = '';
   document.getElementById('manualStr').classList.remove('err-field');
@@ -1091,6 +1278,11 @@ function restart() {
   document.getElementById('defaultInfo').querySelector('.verdict-subtitle').textContent = 'Move i to pump the string and check membership in L';
   document.getElementById('iRange').value = 1;
   document.getElementById('iBadge').textContent = 1;
+  document.getElementById('btnOtherDecomp').style.display = 'none';
+  document.getElementById('btnOtherDecomp').classList.remove('active');
+  document.getElementById('btnOtherDecomp').textContent = '🔍 Show other valid decompositions';
+  document.getElementById('otherDecompPanel').style.display = 'none';
+  document.getElementById('otherDecompRows').innerHTML = '';
   setCards(1);
   setTimeout(() => window.scrollTo({top:0,behavior:'smooth'}), 50);
 }
