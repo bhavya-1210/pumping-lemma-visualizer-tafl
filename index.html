@@ -283,7 +283,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
   <div style="max-width:120px">
     <div class="field">
       <span class="field-label">How many distinct symbols?</span>
-      <input type="number" id="symCountInput" value="1" min="1" max="5" onchange="setSymCount(this.value)" oninput="validateSymCount(this.value)">
+      <input type="number" id="symCountInput" placeholder="1" min="1" max="5" onchange="setSymCount(this.value)" oninput="validateSymCount(this.value)">
     </div>
     <div class="err" id="symCountErr" style="display:none;margin-top:6px"></div>
   </div>
@@ -597,7 +597,7 @@ function addConstraint() {
       <option value="<">&lt;</option>
       <option value=">">&gt;</option>
     </select>
-    <input class="con-num" type="text" placeholder="n1 or 2*n0+1" value=""
+    <input class="con-num" type="text" placeholder="n1 or 2n0+1" value=""
       oninput="updateCon(${idx},'rhsExpr',this.value)">
     <button class="remove-con" onclick="removeCon(${idx})">×</button>`;
   document.getElementById('conBuilder').appendChild(row);
@@ -1071,13 +1071,15 @@ function updatePump() {
   if (i === 1) {
     card.style.display = 'none'; defInfo.style.display = '';
     defInfo.querySelector('.verdict-subtitle').textContent = `i = 1 restores original s — try i = 0, 2, 3…`;
-    document.getElementById('btnOtherDecomp').style.display = 'none';
-    document.getElementById('otherDecompPanel').style.display = 'none';
-    document.getElementById('otherDecompRows').innerHTML = '';
+    buildOtherDecomps(i);
     return;
   }
 
   defInfo.style.display = 'none'; card.style.display = '';
+
+  if (document.getElementById('otherDecompPanel').style.display === 'block') {
+    document.getElementById('otherDecompPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 
   if (inL) {
     card.className = 'verdict-card vc-ok';
@@ -1150,6 +1152,7 @@ function toggleOtherDecomp() {
     panel.style.display = 'block';
     btn.textContent = '✕ Hide other decompositions';
     btn.classList.add('active');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
 
@@ -1248,7 +1251,7 @@ function scrollToCard(id) {
 
 function restart() {
   ST = { symCount:0, syms:[], constraints:[], p:4, s:'', lx:0, ly:0, memberFn:null };
-  document.getElementById('symCountInput').value = 1;
+  document.getElementById('symCountInput').value = '';
   document.getElementById('symCountErr').style.display = 'none';
   document.getElementById('symBuilderWrap').style.display = 'none';
   document.getElementById('symBuilder').innerHTML = '';
