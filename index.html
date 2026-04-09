@@ -440,6 +440,22 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
     <div class="i-badge" id="iBadge">1</div>
   </div>
 
+  <!-- DECOMPOSITION BOXES -->
+  <div id="decompositionBoxes" style="display:none;margin-top:20px;display:flex;align-items:flex-end;justify-content:center;gap:18px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+      <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(10,10,18,.6);text-transform:uppercase;letter-spacing:.1em;font-weight:600">x</div>
+      <div id="xBox" style="background:var(--blue-bg);border:2px solid #6bb8f0;border-radius:12px;padding:16px 24px;color:var(--blue);font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700">—</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+      <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(10,10,18,.6);text-transform:uppercase;letter-spacing:.1em;font-weight:600">y<sup style="font-size:10px" id="yExp">i</sup></div>
+      <div id="yBox" style="background:var(--green-bg);border:2px solid #5dcaa5;border-radius:12px;padding:16px 24px;color:var(--green);font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;max-width:200px;word-break:break-all">—</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+      <div style="font-family:'DM Mono',monospace;font-size:13px;color:rgba(10,10,18,.6);text-transform:uppercase;letter-spacing:.1em;font-weight:600">z</div>
+      <div id="zBox" style="background:var(--red-bg);border:2px solid #f0997b;border-radius:12px;padding:16px 24px;color:var(--red);font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700">—</div>
+    </div>
+  </div>
+
   <!-- VERDICT CARD -->
   <div class="verdict-card" id="verdictCard" style="display:none"></div>
 
@@ -1056,6 +1072,13 @@ function updatePump() {
   const pumped = xT + yT.repeat(i) + zT;
   const yi = yT.repeat(i) || 'ε';
 
+  // Show decomposition boxes
+  document.getElementById('decompositionBoxes').style.display = 'flex';
+  document.getElementById('xBox').textContent = xT || 'ε';
+  document.getElementById('yExp').innerHTML = i;
+  document.getElementById('yBox').textContent = yi;
+  document.getElementById('zBox').textContent = zT || 'ε';
+
   const inL = inLang(pumped);
   const card = document.getElementById('verdictCard');
   const defInfo = document.getElementById('defaultInfo');
@@ -1296,6 +1319,7 @@ function restart() {
   document.getElementById('decompChips').style.display = 'none';
   document.getElementById('stage4').innerHTML = '';
   document.getElementById('step4Btn').style.display = 'none';
+  document.getElementById('decompositionBoxes').style.display = 'none';
   document.getElementById('verdictCard').style.display = 'none';
   document.getElementById('defaultInfo').style.display = '';
   document.getElementById('defaultInfo').querySelector('.verdict-subtitle').textContent = 'Move i to pump the string and check membership in L';
