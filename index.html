@@ -1113,6 +1113,16 @@ function updatePump() {
 
     buildOtherDecomps(i);
   }
+
+  // Auto-scroll to show the verdict card when slider changes
+  setTimeout(() => {
+    const card = document.getElementById('verdictCard');
+    const defInfo = document.getElementById('defaultInfo');
+    const visibleCard = card.style.display !== 'none' ? card : defInfo;
+    if (visibleCard) {
+      visibleCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 50);
 }
 
 /* ═══════════════════════════════════
@@ -1172,42 +1182,55 @@ function buildOtherDecomps(currentI) {
     btn.textContent = countLabel;
   }
 
-  // Only show results when i ≠ 1
-  if (currentI === 1) {
-    headRow.textContent = `Move the slider to i = 0, 2, 3… to test other decompositions with different i values`;
-    tbody.innerHTML = '';
-    return;
-  }
-
-  headRow.textContent = `${others.length} other valid (x, y, z) decompositions — pumped with i = ${currentI}`;
+  headRow.textContent = `${others.length} other valid (x, y, z) decompositions — auto-checking i = 1 to 5`;
 
   const rows = others.map(d => {
     const xT = s.slice(0, d.lx);
     const yT = s.slice(d.lx, d.lx + d.ly);
     const zT = s.slice(d.lx + d.ly);
-    const pumped = xT + yT.repeat(currentI) + zT;
-    const inL = inLang(pumped);
 
-    // Find lowest i ≠ 1, i >= 0 that violates membership
+    // Find if ANY i from 1 to 5 violates membership
     let violatingI = null;
-    if (inL) {
-      for (let testI = 0; testI <= 7; testI++) {
-        if (testI === 1) continue;
-        if (!inLang(xT + yT.repeat(testI) + zT)) { violatingI = testI; break; }
+    for (let testI = 1; testI <= 5; testI++) {
+      const pumped = xT + yT.repeat(testI) + zT;
+      if (!inLang(pumped)) { 
+        violatingI = testI; 
+        break; 
       }
     }
 
-    const badge = inL
-      ? `<span class="decomp-badge-in">∈ L</span>`
-      : `<span class="decomp-badge-out">∉ L</span>`;
+    // Also check i=0 for completeness
+    if (violatingI === null) {
+      const pumpedZero = xT + zT;
+      if (!inLang(pumpedZero)) {
+        violatingI = 0;
+      }
+    }
 
-    const note = !inL
-      ? `<span class="decomp-note-bad">violated at i = ${currentI}</span>`
-      : violatingI !== null
-        ? `<span class="decomp-note-ok">try i = ${violatingI} to violate</span>`
-        : `<span class="decomp-note-ok">stays ∈ L for i = 0–7</span>`;
+    // Check if it stays in L for all i 1-5
+    let staysInL = true;
+    if (violatingI === null) {
+      for (let testI = 1; testI <= 5; testI++) {
+        const pumped = xT + yT.repeat(testI) + zT;
+        if (!inLang(pumped)) {
+          staysInL = false;
+          break;
+        }
+      }
+    } else {
+      staysInL = false;
+    }
 
-    const highlight = !inL ? ' class="decomp-row-highlight"' : '';
+    const badge = violatingI !== null
+      ? `<span class="decomp-badge-out">∉ L</span>`
+      : `<span class="decomp-badge-in">∈ L</span>`;
+
+    const note = violatingI !== null
+      ? `<span class="decomp-note-bad">violated at i = ${violatingI}</span>`
+      : `<span class="decomp-note-ok">stays ∈ L for i = 1–5</span>`;
+
+    const pumped = xT + yT.repeat(1) + zT; // Show example with i=1
+    const highlight = violatingI !== null ? ' class="decomp-row-highlight"' : '';
 
     return `<tr${highlight}>
       <td>${d.lx}</td>
