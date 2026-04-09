@@ -237,8 +237,8 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
 /* OTHER DECOMPOSITIONS */
 .btn-other-decomp{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;
   background:rgba(10,10,18,.07);border:1.5px solid rgba(10,10,18,.13);border-radius:10px;
-  font-family:'DM Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.04em;
-  cursor:pointer;color:rgba(10,10,18,.6);transition:all .15s;margin-top:14px}
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;color:rgba(10,10,18,.6);transition:all .15s}
 .btn-other-decomp:hover{background:rgba(10,10,18,.13);color:var(--ink);transform:translateY(-1px)}
 .btn-other-decomp.active{background:rgba(10,10,18,.13);color:var(--ink)}
 .other-decomp-panel{margin-top:12px;border-radius:14px;overflow:hidden;border:1.5px solid rgba(10,10,18,.1);display:none}
@@ -254,6 +254,15 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
 .decomp-note-bad{color:#a83200;font-size:10px;font-style:italic}
 .decomp-note-ok{color:#006b35;font-size:10px;font-style:italic}
 .decomp-row-highlight td{background:rgba(255,217,200,.25)!important}
+
+/* RESULTS TABLE */
+.results-table{width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:13px;background:rgba(255,255,255,.7);border:1.5px solid rgba(10,10,18,.08);border-radius:10px;overflow:hidden}
+.results-table th{text-align:left;padding:12px 16px;background:rgba(10,10,18,.06);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:rgba(10,10,18,.6);border-bottom:1.5px solid rgba(10,10,18,.08)}
+.results-table td{padding:14px 16px;vertical-align:middle}
+.results-table tr:hover td{background:rgba(10,10,18,.02)}
+.results-badge-in{display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;border-radius:6px;background:rgba(194,245,216,.7);border:1.5px solid #5dcaa5;color:#006b35;font-size:12px;font-weight:700}
+.results-badge-out{display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;border-radius:6px;background:rgba(255,217,200,.7);border:1.5px solid #f0997b;color:#a83200;font-size:12px;font-weight:700}
+.results-table .note-text{color:rgba(10,10,18,.65);font-size:12px}
 </style>
 </head>
 <body>
@@ -431,13 +440,6 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
     <div class="i-badge" id="iBadge">1</div>
   </div>
 
-  <div class="pumped-display" id="pumpedDisplay">
-    <div class="pumped-lbl" id="pumpedLbl">xy¹z =</div>
-    <div class="pumped-val" id="pumpedVal">—</div>
-  </div>
-
-  <div class="stage" id="stage5"></div>
-
   <!-- VERDICT CARD -->
   <div class="verdict-card" id="verdictCard" style="display:none"></div>
 
@@ -454,10 +456,15 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
     </div>
   </div>
 
-  <!-- OTHER DECOMPOSITIONS BUTTON + PANEL -->
-  <button class="btn-other-decomp" id="btnOtherDecomp" style="display:none" onclick="toggleOtherDecomp()">
-    🔍 Show other valid decompositions
-  </button>
+  <!-- OTHER DECOMPOSITIONS BUTTON + RESTART BUTTON ROW -->
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px">
+    <button class="btn-other-decomp" id="btnOtherDecomp" style="display:none;margin-top:0" onclick="toggleOtherDecomp()">
+      🔍 Show other valid decompositions
+    </button>
+    <button class="restart-btn" style="margin-top:0" onclick="restart()">↺ Start Over</button>
+  </div>
+  
+  <!-- OTHER DECOMPOSITIONS PANEL -->
   <div class="other-decomp-panel" id="otherDecompPanel">
     <div class="other-decomp-head-row" id="otherDecompHeadRow">Other valid (x, y, z) decompositions — pumped with current i</div>
     <table class="decomp-table">
@@ -469,10 +476,6 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);cursor:grab
       <tbody id="otherDecompRows"></tbody>
     </table>
   </div>
-</div>
-
-<div class="restart-footer">
-  <button class="restart-btn" onclick="restart()">↺ Start Over</button>
 </div>
 
 </div><!-- /main -->
@@ -912,7 +915,6 @@ function goStep4() {
 
 function goStep5() {
   setCards(5); scrollToCard('step5');
-  document.getElementById('pumpedDisplay').style.display = '';
   document.getElementById('iRange').value = 1;
   document.getElementById('iBadge').textContent = 1;
   document.getElementById('btnOtherDecomp').style.display = 'none';
@@ -1054,15 +1056,6 @@ function updatePump() {
   const pumped = xT + yT.repeat(i) + zT;
   const yi = yT.repeat(i) || 'ε';
 
-  document.getElementById('pumpedLbl').innerHTML = `xy<sup>${i}</sup>z =`;
-  document.getElementById('pumpedVal').textContent = pumped || 'ε';
-
-  // stage
-  document.getElementById('stage5').innerHTML = `
-    <div class="pill-wrap"><div class="pill-tag">x</div><div class="pill pill-x">${xT||'ε'}</div></div>
-    <div class="pill-wrap"><div class="pill-tag">y<sup style="font-size:9px">${i}</sup></div><div class="pill pill-y" style="word-break:break-all;max-width:220px">${yi}</div></div>
-    <div class="pill-wrap"><div class="pill-tag">z</div><div class="pill pill-z">${zT||'ε'}</div></div>`;
-
   const inL = inLang(pumped);
   const card = document.getElementById('verdictCard');
   const defInfo = document.getElementById('defaultInfo');
@@ -1072,55 +1065,54 @@ function updatePump() {
     card.style.display = 'none'; defInfo.style.display = '';
     defInfo.querySelector('.verdict-subtitle').textContent = `i = 1 restores original s — try i = 0, 2, 3…`;
     buildOtherDecomps(i);
-    return;
-  }
-
-  defInfo.style.display = 'none'; card.style.display = '';
-
-  if (document.getElementById('otherDecompPanel').style.display === 'block') {
-    document.getElementById('otherDecompPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  if (inL) {
-    card.className = 'verdict-card vc-ok';
-    card.innerHTML = `
-      <div class="verdict-header">
-        <div class="verdict-icon">✓</div>
-        <div>
-          <div class="verdict-title">xy<sup>${i}</sup>z &nbsp;∈&nbsp; L</div>
-          <div class="verdict-subtitle">No contradiction for i = ${i}</div>
-        </div>
-      </div>
-      <div class="verdict-body">
-        The pumped string <strong>"${pumped||'ε'}"</strong> is still in the language.<br>
-        This does <strong>not</strong> prove regularity — you must check <em>all</em> i ≥ 0
-        and all valid decompositions. Try i = 0 or larger values.
-      </div>`;
   } else {
-    card.className = 'verdict-card vc-not-regular';
-    card.innerHTML = `
-      <div class="verdict-header">
-        <div class="verdict-icon">✗</div>
-        <div>
-          <div class="verdict-title">Language is NOT Regular</div>
-          <div class="verdict-subtitle">Pumping Lemma violated at i = ${i}</div>
-        </div>
-      </div>
-      <div class="verdict-body">
-        <div class="proof-steps">
-          <div class="proof-step"><div class="ps-num">1</div><div>Assume L is regular. Then ∃ pumping length p = ${ST.p}.</div></div>
-          <div class="proof-step"><div class="ps-num">2</div><div>Choose s = <strong>"${ST.s}"</strong> ∈ L with |s| = ${ST.s.length} ≥ p.</div></div>
-          <div class="proof-step"><div class="ps-num">3</div><div>Decompose: x = <strong>"${xT2||'ε'}"</strong>, y = <strong>"${yT2}"</strong>, z = <strong>"${zT2||'ε'}"</strong>&emsp;(|xy| = ${ST.lx+ST.ly} ≤ p, |y| = ${ST.ly} ≥ 1 ✓)</div></div>
-          <div class="proof-step"><div class="ps-num">4</div><div>Pump: xy<sup>${i}</sup>z = <strong>"${pumped||'ε'}"</strong></div></div>
-          <div class="proof-step"><div class="ps-num">5</div><div><strong>"${pumped||'ε'}" ∉ L</strong> — contradiction! Pumping Lemma is violated.</div></div>
-        </div>
-        <div style="margin-top:12px;padding:10px 14px;background:rgba(122,37,0,.1);border-radius:8px;font-size:12.5px;font-weight:700;">
-          ∴ &nbsp;L is not a regular language.
-        </div>
-      </div>`;
-  }
+    defInfo.style.display = 'none'; card.style.display = '';
 
-  buildOtherDecomps(i);
+    if (document.getElementById('otherDecompPanel').style.display === 'block') {
+      document.getElementById('otherDecompPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    if (inL) {
+      card.className = 'verdict-card vc-ok';
+      card.innerHTML = `
+        <div class="verdict-header">
+          <div class="verdict-icon">✓</div>
+          <div>
+            <div class="verdict-title">xy<sup>${i}</sup>z &nbsp;∈&nbsp; L</div>
+            <div class="verdict-subtitle">No contradiction for i = ${i}</div>
+          </div>
+        </div>
+        <div class="verdict-body">
+          The pumped string <strong>"${pumped||'ε'}"</strong> is still in the language.<br>
+          This does <strong>not</strong> prove regularity — you must check <em>all</em> i ≥ 0
+          and all valid decompositions. Try i = 0 or larger values.
+        </div>`;
+    } else {
+      card.className = 'verdict-card vc-not-regular';
+      card.innerHTML = `
+        <div class="verdict-header">
+          <div class="verdict-icon">✗</div>
+          <div>
+            <div class="verdict-title">Language is NOT Regular</div>
+            <div class="verdict-subtitle">Pumping Lemma violated at i = ${i}</div>
+          </div>
+        </div>
+        <div class="verdict-body">
+          <div class="proof-steps">
+            <div class="proof-step"><div class="ps-num">1</div><div>Assume L is regular. Then ∃ pumping length p = ${ST.p}.</div></div>
+            <div class="proof-step"><div class="ps-num">2</div><div>Choose s = <strong>"${ST.s}"</strong> ∈ L with |s| = ${ST.s.length} ≥ p.</div></div>
+            <div class="proof-step"><div class="ps-num">3</div><div>Decompose: x = <strong>"${xT2||'ε'}"</strong>, y = <strong>"${yT2}"</strong>, z = <strong>"${zT2||'ε'}"</strong>&emsp;(|xy| = ${ST.lx+ST.ly} ≤ p, |y| = ${ST.ly} ≥ 1 ✓)</div></div>
+            <div class="proof-step"><div class="ps-num">4</div><div>Pump: xy<sup>${i}</sup>z = <strong>"${pumped||'ε'}"</strong></div></div>
+            <div class="proof-step"><div class="ps-num">5</div><div><strong>"${pumped||'ε'}" ∉ L</strong> — contradiction! Pumping Lemma is violated.</div></div>
+          </div>
+          <div style="margin-top:12px;padding:10px 14px;background:rgba(122,37,0,.1);border-radius:8px;font-size:12.5px;font-weight:700;">
+            ∴ &nbsp;L is not a regular language.
+          </div>
+        </div>`;
+    }
+
+    buildOtherDecomps(i);
+  }
 }
 
 /* ═══════════════════════════════════
@@ -1178,6 +1170,13 @@ function buildOtherDecomps(currentI) {
   btn.setAttribute('data-count-label', countLabel);
   if (!btn.classList.contains('active')) {
     btn.textContent = countLabel;
+  }
+
+  // Only show results when i ≠ 1
+  if (currentI === 1) {
+    headRow.textContent = `Move the slider to i = 0, 2, 3… to test other decompositions with different i values`;
+    tbody.innerHTML = '';
+    return;
   }
 
   headRow.textContent = `${others.length} other valid (x, y, z) decompositions — pumped with i = ${currentI}`;
@@ -1274,8 +1273,6 @@ function restart() {
   document.getElementById('decompChips').style.display = 'none';
   document.getElementById('stage4').innerHTML = '';
   document.getElementById('step4Btn').style.display = 'none';
-  document.getElementById('pumpedDisplay').style.display = 'none';
-  document.getElementById('stage5').innerHTML = '';
   document.getElementById('verdictCard').style.display = 'none';
   document.getElementById('defaultInfo').style.display = '';
   document.getElementById('defaultInfo').querySelector('.verdict-subtitle').textContent = 'Move i to pump the string and check membership in L';
